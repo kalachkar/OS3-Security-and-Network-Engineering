@@ -1,0 +1,1042 @@
+                                INR Lab Assignment:
+                                      OSPFv3*
+                                     
+
+====== Preparation ======
+
+
+<WRAP center round tip 60%> Task 1. Create the config file required to start the
+network depicted in Figure 1. You will use the IPv6 blocks defined defined below. </WRAP>
+
+** Answer: **
+
+X = 2
+Y = 14 ( E in hex )
+
+
+Check again:
+<code>
+################################################################################
+#GLOBAL CONFIG
+################################################################################
+# config that starts up a router setup w/ ripng
+
+
+[global]
+session_path  = /tmp
+tcpdump_path= /tmp
+hubs = 10
+
+#section name = device hostname
+[router1]
+role= router
+eth1 = 0,,2001:0db8:0e02:0001::1/64
+eth123 = 6,,2001:0db8:0e02:0029::1/64
+eth14 = 7,,2001:0db8:0e02:0009::1/64
+pass_quaggadir="/root/pogo/configurations/ospf/router1/"
+
+[router2]
+role = router
+eth2 = 1,,2001:0db8:0e02:0002::2/64
+eth123 = 6,,2001:0db8:0e02:0029::2/64
+pass_quaggadir="/root/pogo/configurations/ospf/router2/"
+
+[router3]
+role = router
+eth3 = 2,,2001:0db8:0e02:0003::3/64
+eth123 = 6,,2001:0db8:0e02:0029::3/64
+eth35 = 8,,2001:0db8:0e02:0012::3/64
+pass_quaggadir="/root/pogo/configurations/ospf/router3/"
+
+[router4]
+role = router
+eth4 = 3,,2001:0db8:0e02:0004::4/64
+eth14 = 7,,2001:0db8:0e02:0009::4/64
+eth456 = 9,,2001:0db8:0e02:0021::4/64
+pass_quaggadir="/root/pogo/configurations/ospf/router4/"
+
+[router5]
+role = router
+eth5 = 4,,2001:0db8:0e02:0005::5/64
+eth35 = 8,,2001:0db8:0e02:0012::5/64
+eth456 = 9,,2001:0db8:0e02:0021::5/64
+pass_quaggadir="/root/pogo/configurations/ospf/router5/"
+
+[router6]
+role = router
+eth6 = 5,,2001:0db8:0e02:0006::6/64
+eth456 = 9,,2001:0db8:0e02:0021::6/64
+pass_quaggadir="/root/pogo/configurations/ospf/router6/"
+</code>
+
+<code>
+root@Guest-02:~/pogo/configurations/ospf# python /root/pogo/pogo.py start ospf.cfg 
+INFO: Starting sniffer on ogo-ovs0 switch
+INFO: Starting sniffer on ogo-ovs1 switch
+INFO: Starting sniffer on ogo-ovs2 switch
+INFO: Starting sniffer on ogo-ovs3 switch
+INFO: Starting sniffer on ogo-ovs4 switch
+INFO: Starting sniffer on ogo-ovs5 switch
+INFO: Starting sniffer on ogo-ovs6 switch
+INFO: Starting sniffer on ogo-ovs7 switch
+INFO: Starting sniffer on ogo-ovs8 switch
+INFO: Starting sniffer on ogo-ovs9 switch
+INFO: Starting host router1. 
+INFO: Starting host router2. 
+INFO: Starting host router3. 
+INFO: Starting host router4. 
+INFO: Starting host router5. 
+INFO: Starting host router6. 
+There are screens on:
+	8239.router6	(11/29/17 22:49:47)	(Detached)
+	7556.router5	(11/29/17 22:49:43)	(Detached)
+	7120.router4	(11/29/17 22:49:39)	(Detached)
+	6671.router3	(11/29/17 22:49:35)	(Detached)
+	6253.router2	(11/29/17 22:49:31)	(Detached)
+	5880.router1	(11/29/17 22:49:28)	(Detached)
+6 Sockets in /run/screen/S-root.
+</code>
+
+
+<WRAP center round tip 60%>Task 2. Draw a diagram of the network that shows the IP
+addressing for each router interface.</WRAP>
+
+** Answer: **
+
+
+{{:2017-2018:students:kotaiba_alachkar:inr:ospf_diagram.png?500|}}
+
+<WRAP center round tip 60%> Task 3. Configure OSPFv2 on each router in such a way
+that the network is stable and operational (any point is reachable from any point).
+All routers are in the same area. </WRAP>
+
+** Answer: **
+
+First, we have to change the deamons file in each router to:
+<code>
+zebra=yes
+bgpd=no
+ospfd=no 
+ospf6d=yes
+ripd=no 
+ripngd=nl 
+isisd=no
+</code>
+
+Check interfaces:
+
+<code>
+root@Guest-02:~/pogo/configurations/ospf# lxc list
++---------+---------+------+--------------------------------+------------+-----------+
+|  NAME   |  STATE  | IPV4 |              IPV6              |    TYPE    | SNAPSHOTS |
++---------+---------+------+--------------------------------+------------+-----------+
+| ogobase | STOPPED |      |                                | PERSISTENT | 0         |
++---------+---------+------+--------------------------------+------------+-----------+
+| router1 | RUNNING |      | 2001:db8:e02:9::1 (eth14)      | PERSISTENT | 0         |
+|         |         |      | 2001:db8:e02:29::1 (eth123)    |            |           |
+|         |         |      | 2001:db8:e02:1::1 (eth1)       |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+| router2 | RUNNING |      | 2001:db8:200:e29::2 (eth123)   | PERSISTENT | 0         |
+|         |         |      | 2001:db8:200:e02::2 (eth2)     |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+| router3 | RUNNING |      | 2001:db8:200:e29::3 (eth123)   | PERSISTENT | 0         |
+|         |         |      | 2001:db8:200:e0f::3 (eth35)    |            |           |
+|         |         |      | 2001:db8:200:e03::3 (eth3)     |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+| router4 | RUNNING |      | 2001:db8:200:e1f::4 (eth45)    | PERSISTENT | 0         |
+|         |         |      | 2001:db8:200:e07::4 (eth14)    |            |           |
+|         |         |      | 2001:db8:200:e04::4 (eth4)     |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+| router5 | RUNNING |      | 2001:db8:200:e1f::5 (eth45)    | PERSISTENT | 0         |
+|         |         |      | 2001:db8:200:e0f::5 (eth35)    |            |           |
+|         |         |      | 2001:db8:200:e05::5 (eth5)     |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+| router6 | RUNNING |      | 2001:db8:e02:6::6 (eth6)       | PERSISTENT | 0         |
+|         |         |      | 2001:db8:e02:21::6 (eth456)    |            |           |
++---------+---------+------+--------------------------------+------------+-----------+
+
+</code>
+
+Now, we do the same for each router ( we change router name, Id, and interfaces):
+<code>
+!
+hostname router1
+password 1
+log stdout
+!
+!debug ospf6 events
+!debug ospf6 packet
+!
+router ospf6
+  router-id 1.1.1.1
+  interface eth1 area 0.0.0.0
+  interface eth123 area 0.0.0.0
+  interface eth14 area 0.0.0.0
+ redistribute connected
+!
+line vty
+!
+end
+</code>
+
+Test Ping from router1 to router6:
+<code>
+root@router1:~# ping6 2001:db8:e02:6::6
+PING 2001:db8:e02:6::6(2001:db8:e02:6::6) 56 data bytes
+64 bytes from 2001:db8:e02:6::6: icmp_seq=1 ttl=62 time=2.30 ms
+64 bytes from 2001:db8:e02:6::6: icmp_seq=2 ttl=62 time=0.201 ms
+64 bytes from 2001:db8:e02:6::6: icmp_seq=3 ttl=62 time=0.196 ms
+64 bytes from 2001:db8:e02:6::6: icmp_seq=4 ttl=62 time=0.180 ms
+64 bytes from 2001:db8:e02:6::6: icmp_seq=5 ttl=62 time=0.196 ms
+64 bytes from 2001:db8:e02:6::6: icmp_seq=6 ttl=62 time=0.219 ms
+^C
+--- 2001:db8:e02:6::6 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5102ms
+rtt min/avg/max/mdev = 0.180/0.549/2.305/0.785 ms
+</code>
+
+====== OSPF ======
+
+
+<WRAP center round tip 60%> Task 4. For router5 display the following:
+  * the router ID
+  * the routing table
+  * the OSPF routing table
+  * the OSPF interface table
+  * the OSPF neighbors
+Are there any differences between the OSPF table and the routing table? (Hints: telnet, ip, show ) Why? </WRAP>
+
+** Answer: **
+
+  * the router ID:
+<code>
+router5# show ipv6 ospf6 
+ OSPFv3 Routing Process (0) with Router-ID 5.5.5.5
+ Running 00:03:58
+ Initial SPF scheduling delay 200 millisec(s)
+ Minimum hold time between consecutive SPFs 1000 millsecond(s)
+ Maximum hold time between consecutive SPFs 10000 millsecond(s)
+ Hold time multiplier is currently 1
+ SPF algorithm has not been run$
+ SPF timer is inactive
+ Number of AS scoped LSAs is 16
+ Number of areas in this router is 1
+
+ Area 0.0.0.0
+     Number of Area scoped LSAs is 20
+     Interface attached to this area: eth5 eth35 eth456
+</code>
+
+  * the routing table
+<code>
+router5# show ipv6 route
+Codes: K - kernel route, C - connected, S - static, R - RIPng,
+       O - OSPFv6, I - IS-IS, B - BGP, A - Babel,
+       > - selected route, * - FIB route
+
+C>* ::1/128 is directly connected, lo
+O>* 2001:db8:e02:1::/64 [110/30] via fe80::216:3eff:fede:2f67, eth456, 00:03:41
+O>* 2001:db8:e02:2::/64 [110/30] via fe80::216:3eff:feb1:10c5, eth35, 00:03:46
+O>* 2001:db8:e02:3::/64 [110/20] via fe80::216:3eff:feb1:10c5, eth35, 00:03:46
+O>* 2001:db8:e02:4::/64 [110/20] via fe80::216:3eff:fede:2f67, eth456, 00:03:41
+O   2001:db8:e02:5::/64 [110/10] is directly connected, eth5, 00:03:46
+C>* 2001:db8:e02:5::/64 is directly connected, eth5
+O>* 2001:db8:e02:6::/64 [110/20] via fe80::216:3eff:fe49:f920, eth456, 00:03:41
+O>* 2001:db8:e02:9::/64 [110/20] via fe80::216:3eff:fede:2f67, eth456, 00:03:41
+O   2001:db8:e02:12::/64 [110/10] is directly connected, eth35, 00:03:49
+C>* 2001:db8:e02:12::/64 is directly connected, eth35
+O   2001:db8:e02:21::/64 [110/10] is directly connected, eth456, 00:03:41
+C>* 2001:db8:e02:21::/64 is directly connected, eth456
+O>* 2001:db8:e02:29::/64 [110/20] via fe80::216:3eff:feb1:10c5, eth35, 00:03:46
+C * fe80::/64 is directly connected, eth5
+C * fe80::/64 is directly connected, eth456
+C>* fe80::/64 is directly connected, eth35
+</code>
+
+  * the OSPF routing table
+<code>
+router5# show ipv6 ospf6 route 
+*N IA 2001:db8:e02:1::/64            fe80::216:3eff:feb1:10c5   eth35 00:03:59
+                                     fe80::216:3eff:fede:2f67  eth456 
+ N E1 2001:db8:e02:1::/64            fe80::216:3eff:feb1:10c5   eth35 00:03:59
+                                     fe80::216:3eff:fede:2f67  eth456 
+*N IA 2001:db8:e02:2::/64            fe80::216:3eff:feb1:10c5   eth35 00:04:04
+ N E1 2001:db8:e02:2::/64            fe80::216:3eff:feb1:10c5   eth35 00:04:04
+*N IA 2001:db8:e02:3::/64            fe80::216:3eff:feb1:10c5   eth35 00:04:04
+ N E1 2001:db8:e02:3::/64            fe80::216:3eff:feb1:10c5   eth35 00:04:04
+*N IA 2001:db8:e02:4::/64            fe80::216:3eff:fede:2f67  eth456 00:03:59
+ N E1 2001:db8:e02:4::/64            fe80::216:3eff:fede:2f67  eth456 00:03:59
+*N IA 2001:db8:e02:5::/64            ::                          eth5 00:04:04
+*N IA 2001:db8:e02:6::/64            fe80::216:3eff:fe49:f920  eth456 00:03:59
+ N E1 2001:db8:e02:6::/64            fe80::216:3eff:fe49:f920  eth456 00:03:59
+*N IA 2001:db8:e02:9::/64            fe80::216:3eff:fede:2f67  eth456 00:03:59
+ N E1 2001:db8:e02:9::/64            fe80::216:3eff:fede:2f67  eth456 00:03:59
+ N E1 2001:db8:e02:9::/64            fe80::216:3eff:feb1:10c5   eth35 00:03:59
+                                     fe80::216:3eff:fede:2f67  eth456 
+ N E1 2001:db8:e02:9::/64            fe80::216:3eff:feb1:10c5   eth35 00:04:04
+*N IA 2001:db8:e02:12::/64           ::                         eth35 00:04:08
+ N E1 2001:db8:e02:12::/64           fe80::216:3eff:feb1:10c5   eth35 00:04:04
+*N IA 2001:db8:e02:21::/64           ::                        eth456 00:03:59
+ N E1 2001:db8:e02:21::/64           fe80::216:3eff:fede:2f67  eth456 00:03:59
+ N E1 2001:db8:e02:21::/64           fe80::216:3eff:fe49:f920  eth456 00:03:59
+*N IA 2001:db8:e02:29::/64           fe80::216:3eff:feb1:10c5   eth35 00:04:04
+ N E1 2001:db8:e02:29::/64           fe80::216:3eff:feb1:10c5   eth35 00:04:04
+ N E1 2001:db8:e02:29::/64           fe80::216:3eff:feb1:10c5   eth35 00:03:59
+                                     fe80::216:3eff:fede:2f67  eth456 
+ N E1 2001:db8:e02:29::/64           fe80::216:3eff:feb1:10c5   eth35 00:04:04
+</code>
+
+  * the OSPF interface table
+<code>
+router5# show ipv6 ospf6 interface 
+eth5 is up, type BROADCAST
+  Interface ID: 135
+  Internet Address:
+    inet6: 2001:db8:e02:5::5/64
+    inet6: fe80::216:3eff:fefc:a08b/64
+  Instance ID 0, Interface MTU 1500 (autodetect: 1500)
+  MTU mismatch detection: enabled
+  Area ID 0.0.0.0, Cost 10
+  State DR, Transmit Delay 1 sec, Priority 1
+  Timer intervals configured:
+   Hello 10, Dead 40, Retransmit 5
+  DR: 5.5.5.5 BDR: 0.0.0.0
+  Number of I/F scoped LSAs is 1
+    0 Pending LSAs for LSUpdate in Time 00:00:00 [thread off]
+    0 Pending LSAs for LSAck in Time 00:00:00 [thread off]
+eth35 is up, type BROADCAST
+  Interface ID: 131
+  Internet Address:
+    inet6: 2001:db8:e02:12::5/64
+    inet6: fe80::216:3eff:fef6:5900/64
+  Instance ID 0, Interface MTU 1500 (autodetect: 1500)
+  MTU mismatch detection: enabled
+  Area ID 0.0.0.0, Cost 10
+  State DR, Transmit Delay 1 sec, Priority 1
+  Timer intervals configured:
+   Hello 10, Dead 40, Retransmit 5
+  DR: 5.5.5.5 BDR: 3.3.3.3
+  Number of I/F scoped LSAs is 2
+    0 Pending LSAs for LSUpdate in Time 00:00:00 [thread off]
+    0 Pending LSAs for LSAck in Time 00:00:00 [thread off]
+eth456 is up, type BROADCAST
+  Interface ID: 133
+  Internet Address:
+    inet6: 2001:db8:e02:21::5/64
+    inet6: fe80::216:3eff:fe45:f1a8/64
+  Instance ID 0, Interface MTU 1500 (autodetect: 1500)
+  MTU mismatch detection: enabled
+  Area ID 0.0.0.0, Cost 10
+  State BDR, Transmit Delay 1 sec, Priority 1
+  Timer intervals configured:
+   Hello 10, Dead 40, Retransmit 5
+  DR: 6.6.6.6 BDR: 5.5.5.5
+  Number of I/F scoped LSAs is 3
+    0 Pending LSAs for LSUpdate in Time 00:00:00 [thread off]
+    0 Pending LSAs for LSAck in Time 00:00:00 [thread off]
+lo is up, type LOOPBACK
+  Interface ID: 1
+   OSPF not enabled on this interface
+</code>
+
+  * the OSPF neighbors
+<code>
+router5# show ipv6 ospf6 neighbor 
+Neighbor ID     Pri    DeadTime  State/IfState         Duration I/F[State]
+3.3.3.3           1    00:00:37   Full/BDR             00:04:45 eth35[DR]
+4.4.4.4           1    00:00:40   Full/DROther         00:04:41 eth456[BDR]
+6.6.6.6           1    00:00:39   Full/DR              00:04:41 eth456[BDR]
+</code>
+
+  * Are there any differences between the OSPF table and the routing table?
+Yes, in the routing table we can see the routing time stamp and the administrative distance although they all have the same. However, in OSPF table it explains in which area the route is located. Also in routing table it also show routing from sources other than OSPF ( for example directly connected and so on).
+
+<WRAP center round tip 60%>Task 5. Identify the DR and BDR roles in one network segment, as follows: Pick a network segment with both a DR and a BDR and explain how this was established. Shutdown the DR’s interface that connects to that segment. Explain what happens, and what are the new roles.</WRAP>
+
+** Answer: **
+
+
+I will choose segment L456.
+DR = Designated Router (router6) ( router with highest priority)
+BDR = Backup Designated Router (router5) ( router with second highest priority )
+
+According to RFC (RFC 2328 - OSPF Version 2) According to the RFC, the BDR is actually elected first, followed by the DR.  The RFC explains why:
+ 
+"The reason behind the election algorithm's complexity is the desire for an orderly transition from Backup Designated Router to Designated Router, when the current Designated Router fails. This orderly transition is ensured through the introduction of hysteresis: no new Backup Designated Router can be chosen until the old Backup accepts its new Designated Router responsibilities." 
+
+<code>
+router6# show ipv6 ospf6 neighbor 
+Neighbor ID     Pri    DeadTime  State/IfState         Duration I/F[State]
+4.4.4.4           1    00:00:32   Full/DROther         00:36:48 eth456[DR]
+5.5.5.5           1    00:00:38   Full/BDR             00:36:43 eth456[DR]
+</code>
+
+Shutdown interface:
+<code>
+router6(config)# interface eth456
+router6(config-if)# shutdown
+</code>
+
+AS we see below, the BDR became DR and router4 become and router4 become the BDR ( next highest router ID):
+
+Old output from previous question:
+<code>
+router5# show ipv6 ospf6 neighbor 
+Neighbor ID     Pri    DeadTime  State/IfState         Duration I/F[State]
+3.3.3.3           1    00:00:37   Full/BDR             00:04:45 eth35[DR]
+4.4.4.4           1    00:00:40   Full/DROther         00:04:41 eth456[BDR]
+6.6.6.6           1    00:00:39   Full/DR              00:04:41 eth456[BDR]
+</code>
+</code>
+
+Now:
+
+<code>
+router5# show ipv6 ospf6 neighbor
+Neighbor ID     Pri    DeadTime  State/IfState         Duration I/F[State]
+3.3.3.3           1    00:00:36   Full/BDR             00:40:25 eth35[DR]
+4.4.4.4           1    00:00:39   Full/BDR             00:40:21 eth456[DR]
+</code>
+
+<WRAP center round tip 60%>Task 6. Perform and explain all configurations required such that all traffic from router1 to router6 goes always via router3. Do not shutdown OSPF processes or interfaces ...</WRAP>
+
+** Answer: **
+
+Make it up again:
+<code>
+router6(config)# interface eth456
+router6(config-if)# no shutdown 
+</code>
+
+Since the all router1 traffic can go either from router3 or router4 so I will change the cost of router4 ( before they are all the same) so it will always send the traffic to the lower cost which is router3:
+
+<code>
+router1# conf t
+router1(config)# interface eth14 
+router1(config-if)# ipv6 ospf6 cost 50
+</code>
+
+Check:
+<code>
+router1(config-if)# do show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router1
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth1
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth14
+ ipv6 nd suppress-ra
+ ipv6 ospf6 cost 50
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth123
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 1.1.1.1
+ redistribute connected
+ interface eth1 area 0.0.0.0
+ interface eth123 area 0.0.0.0
+ interface eth14 area 0.0.0.0
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+</code>
+
+As we see above the cost of the interface has been changed. so now all traffic will go from router3.
+
+<WRAP center round alert 60%> **Feedback received: Please show that it works**. </WRAP>
+
+**Answer:**
+
+I destroyed everything and I started from the beginning:
+
+Routeing table before:
+
+<code>
+router1# show ipv6 route 
+Codes: K - kernel route, C - connected, S - static, R - RIPng,
+       O - OSPFv6, I - IS-IS, B - BGP, A - Babel,
+       > - selected route, * - FIB route
+
+C>* ::1/128 is directly connected, lo
+O   2001:db8:e02:1::/64 [110/10] is directly connected, eth1, 00:01:29
+C>* 2001:db8:e02:1::/64 is directly connected, eth1
+O>* 2001:db8:e02:2::/64 [110/20] via fe80::216:3eff:fedb:cf35, eth123, 00:01:27
+O>* 2001:db8:e02:3::/64 [110/20] via fe80::216:3eff:feac:80e1, eth123, 00:01:27
+O>* 2001:db8:e02:4::/64 [110/20] via fe80::216:3eff:fef5:57cb, eth14, 00:01:23
+O>* 2001:db8:e02:5::/64 [110/20] via fe80::216:3eff:fef5:57cb, eth14, 00:01:16
+O>* 2001:db8:e02:6::/64 [110/20] via fe80::216:3eff:fef5:57cb, eth14, 00:01:16
+O   2001:db8:e02:9::/64 [110/10] is directly connected, eth14, 00:01:28
+C>* 2001:db8:e02:9::/64 is directly connected, eth14
+O>* 2001:db8:e02:12::/64 [110/20] via fe80::216:3eff:fef5:57cb, eth14, 00:01:16
+O>* 2001:db8:e02:21::/64 [110/10] via fe80::216:3eff:fef5:57cb, eth14, 00:01:23
+O   2001:db8:e02:29::/64 [110/10] is directly connected, eth123, 00:01:32
+C>* 2001:db8:e02:29::/64 is directly connected, eth123
+C * fe80::/64 is directly connected, eth14
+C * fe80::/64 is directly connected, eth123
+C>* fe80::/64 is directly connected, eth1
+</code>
+
+
+
+
+<WRAP center round tip 60%>Task 7. Configure router2 such that it behaves as a default gateway for all the other routers</WRAP>
+
+** Answer: **
+
+I will add a static route on router2 and distribute it to other routers:
+<code>
+router2# conf t
+router2(config)# ipv6 route ::/0 eth2
+router2(config)# router ospf6
+router2(config-ospf6)# redistribute static 
+</code>
+
+Redistribution is the process of advertising the routes learned by a routing protocol to another routing protocol. It includes advertsing your static routes and default routes also.
+
+Check:
+<code>
+router5# show ipv6 route 
+Codes: K - kernel route, C - connected, S - static, R - RIPng,
+       O - OSPFv6, I - IS-IS, B - BGP, A - Babel,
+       > - selected route, * - FIB route
+
+O>* ::/0 [110/20] via fe80::216:3eff:feb1:10c5, eth35, 00:02:15
+C>* ::1/128 is directly connected, lo
+O>* 2001:db8:e02:1::/64 [110/30] via fe80::216:3eff:fede:2f67, eth456, 00:22:12
+O>* 2001:db8:e02:2::/64 [110/30] via fe80::216:3eff:feb1:10c5, eth35, 01:06:39
+O>* 2001:db8:e02:3::/64 [110/20] via fe80::216:3eff:feb1:10c5, eth35, 01:06:39
+O>* 2001:db8:e02:4::/64 [110/20] via fe80::216:3eff:fede:2f67, eth456, 00:26:31
+O   2001:db8:e02:5::/64 [110/10] is directly connected, eth5, 01:06:39
+C>* 2001:db8:e02:5::/64 is directly connected, eth5
+O>* 2001:db8:e02:6::/64 [110/20] via fe80::216:3eff:fe49:f920, eth456, 00:22:12
+O>* 2001:db8:e02:9::/64 [110/20] via fe80::216:3eff:fede:2f67, eth456, 00:26:31
+O   2001:db8:e02:12::/64 [110/10] is directly connected, eth35, 01:06:42
+C>* 2001:db8:e02:12::/64 is directly connected, eth35
+O   2001:db8:e02:21::/64 [110/10] is directly connected, eth456, 00:26:38
+C>* 2001:db8:e02:21::/64 is directly connected, eth456
+O>* 2001:db8:e02:29::/64 [110/20] via fe80::216:3eff:feb1:10c5, eth35, 01:06:39
+O   fe80::/64 [110/10] via fe80::216:3eff:fe49:f920, eth456, 00:22:12
+C * fe80::/64 is directly connected, eth5
+C * fe80::/64 is directly connected, eth456
+C>* fe80::/64 is directly connected, eth35
+</code>
+
+As we see above ( in router 5 for example ) static ( default ) route is exist in Link-State Database.
+
+
+====== Areas ======
+
+
+<WRAP center round tip 60%>Task 8. Configure OSPF on each router in such a way that the network is stable and operational (any point is reachable from any point)</WRAP>
+
+** Answer: **
+
+<WRAP center round alert 60%>
+When I was trying in this question, I faced a problem when quagga crashed and gave me this error when I was configuring the OSPF areas:
+
+**Warning: closing connection to ospf6d because of an I/O error!**
+
+So what I did is destroy the configuration and add these command to the ospfd.cfg file for each router. Then, build it and start it you will see all the configuration up and running.
+</WRAP>
+
+<WRAP center round box 60%>
+**THIS is a sample file:**
+<code>
+root@Guest-02:~/pogo/configurations/ospf# cat router1/ospf6d.conf 
+hostname router1
+password 1
+log stdout
+!
+!debug ospf6 events
+!debug ospf6 packet
+!
+router ospf6
+ router-id 1.1.1.1
+ redistribute connected
+ area 0.0.0.0 range 2001:db8:e02:1::/64
+ area 0.0.0.0 range 2001:db8:e02:9::/64
+ area 1.1.1.1 range 2001:db8:e02:29::/64
+ interface eth1 area 0.0.0.0
+ interface eth14 area 0.0.0.0
+ interface eth123 area 1.1.1.1
+!
+line vty
+!
+end
+</code>
+
+</WRAP>
+
+
+  * **router1:**
+<code>
+router1(config)# router ospf6
+router1(config-ospf6)# router-id 1.1.1.1
+router1(config-ospf6)# area 0.0.0.0 range 2001:0db8:0e02:0009::/64
+router1(config-ospf6)# area 0.0.0.0 range 2001:0db8:0e02:0001::/64
+router1(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0029::/64
+router1(config-ospf6)# interface eth1
+router1(config-if)# router ospf6
+router1(config-ospf6)# interface eth1 area 0.0.0.0
+eth1 already attached to Area 0.0.0.0
+router1(config-ospf6)# interface eth14 area 0.0.0.0
+eth14 already attached to Area 0.0.0.0
+router1(config-ospf6)# interface eth123 area 1.1.1.1
+
+router1# show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router1
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth1
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth14
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth123
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 1.1.1.1
+ redistribute connected
+ area 0.0.0.0 range 2001:db8:e02:1::/64
+ area 0.0.0.0 range 2001:db8:e02:9::/64
+ area 1.1.1.1 range 2001:db8:e02:29::/64
+ interface eth1 area 0.0.0.0
+ interface eth14 area 0.0.0.0
+ interface eth123 area 1.1.1.1
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+
+</code>
+
+  * **router2:**
+<code>
+router2# conf t
+router2(config)# router ospf6
+router2(config-ospf6)# router-id 2.2.2.2
+router2(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0002::/64
+router2(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0029::/64
+router2(config-ospf6)# interface eth2 area 1.1.1.1
+router2(config-ospf6)# interface eth123 area 1.1.1.1
+
+router2# sho run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router2
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth2
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth123
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 2.2.2.2
+ redistribute connected
+ area 1.1.1.1 range 2001:db8:e02:2::/64
+ area 1.1.1.1 range 2001:db8:e02:29::/64
+ interface eth2 area 1.1.1.1
+ interface eth123 area 1.1.1.1
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+
+</code>
+
+  * **router3:**
+<code>
+router3# conf t
+router3(config)# router ospf6
+router3(config-ospf6)# router-id 3.3.3.3
+router3(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0003::/64
+router3(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0029::/64
+router3(config-ospf6)# area 1.1.1.1 range 2001:0db8:0e02:0012::/64
+router3(config-ospf6)# interface eth3 area 1.1.1.1
+router3(config-ospf6)# interface eth123 area 1.1.1.1
+router3(config-ospf6)# interface eth35 area 1.1.1.1
+
+router2# sho run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router2
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth2
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth123
+ ipv6 nd suppress-ra
+root@router3:~# vtysh
+
+Hello, this is Quagga (version 0.99.24.1).
+Copyright 1996-2005 Kunihiro Ishiguro, et al.
+
+router3# show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router3
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth3
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth35
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth123
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 3.3.3.3
+ redistribute connected
+ area 1.1.1.1 range 2001:db8:e02:3::/64
+ area 1.1.1.1 range 2001:db8:e02:12::/64
+ area 1.1.1.1 range 2001:db8:e02:29::/64
+ interface eth3 area 1.1.1.1
+ interface eth123 area 1.1.1.1
+ interface eth35 area 1.1.1.1
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+</code>
+
+  * **router4:**
+<code>
+router4# conf t
+router4(config)# router ospf6
+router4(config-ospf6)# router-id 4.4.4.4
+router4(config-ospf6)# area 0.0.0.0 range 2001:0db8:0e02:0004::/64
+router4(config-ospf6)# area 0.0.0.0 range 2001:0db8:0e02:0009::/64
+router4(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0021::/64
+router4(config-ospf6)# interface eth456 area 2.2.2.2
+router4(config-ospf6)# interface eth14 area 0.0.0.0
+router4(config-ospf6)# interface eth4 area 0.0.0.0
+
+router4# show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router4
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth4
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth14
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth456
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 4.4.4.4
+ redistribute connected
+ area 0.0.0.0 range 2001:db8:e02:4::/64
+ area 0.0.0.0 range 2001:db8:e02:9::/64
+ area 2.2.2.2 range 2001:db8:e02:21::/64
+ interface eth4 area 0.0.0.0
+ interface eth14 area 0.0.0.0
+ interface eth456 area 2.2.2.2
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+
+</code>
+
+  * **router5:**
+<code>
+router5(config)# router ospf6
+router5(config-ospf6)# router-id 5.5.5.5
+router5(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0005::/64
+router5(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0012::/64
+router5(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0021::/64
+router5(config-ospf6)# interface eth5 area 2.2.2.2
+router5(config-ospf6)# interface eth35 area 2.2.2.2
+router5(config-ospf6)# interface eth456 area 2.2.2.2
+
+
+router5# show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router5
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth5
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth35
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth456
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 5.5.5.5
+ redistribute connected
+ area 2.2.2.2 range 2001:db8:e02:5::/64
+ area 2.2.2.2 range 2001:db8:e02:12::/64
+ area 2.2.2.2 range 2001:db8:e02:21::/64
+ interface eth5 area 2.2.2.2
+ interface eth35 area 2.2.2.2
+ interface eth456 area 2.2.2.2
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+
+</code>
+
+  * **router6:**
+<code>
+router6# conf t
+router6(config)# router ospf6
+router6(config-ospf6)# router-id 6.6.6.6
+router6(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0006::/64
+router6(config-ospf6)# area 2.2.2.2 range 2001:0db8:0e02:0021::/64
+router6(config-ospf6)# interface eth6 area 2.2.2.2
+router6(config-ospf6)# interface eth456 area 2.2.2.2
+
+router6# show run
+Building configuration...
+
+Current configuration:
+!
+hostname Router
+hostname router6
+log stdout
+!
+debug ospf6 lsa unknown
+!
+password 1
+enable password 1
+!
+interface eth6
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface eth456
+ ipv6 nd suppress-ra
+ ipv6 ospf6 network broadcast
+ no link-detect
+!
+interface lo
+ no link-detect
+!
+router ospf6
+ router-id 6.6.6.6
+ redistribute connected
+ area 2.2.2.2 range 2001:db8:e02:6::/64
+ area 2.2.2.2 range 2001:db8:e02:21::/64
+ interface eth6 area 2.2.2.2
+ interface eth456 area 2.2.2.2
+!
+ip forwarding
+ipv6 forwarding
+!
+line vty
+!
+end
+</code>
+
+Test ping from router6 to router1:
+
+<code>
+root@router6:~# ping6 2001:db8:e02:9::1
+PING 2001:db8:e02:9::1(2001:db8:e02:9::1) 56 data bytes
+64 bytes from 2001:db8:e02:9::1: icmp_seq=1 ttl=63 time=1.80 ms
+64 bytes from 2001:db8:e02:9::1: icmp_seq=2 ttl=63 time=0.159 ms
+64 bytes from 2001:db8:e02:9::1: icmp_seq=3 ttl=63 time=0.154 ms
+64 bytes from 2001:db8:e02:9::1: icmp_seq=4 ttl=63 time=0.157 ms
+^C
+--- 2001:db8:e02:9::1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3051ms
+rtt min/avg/max/mdev = 0.154/0.567/1.800/0.711 ms
+
+</code>
+
+<WRAP center round alert 60%> **Feedback received: Explain the area...range command. Router3 contains ”are” statements. L35 is in two areas.**. </WRAP>
+
+**Answer:**
+
+**Explain the area...range command:**
+
+To consolidate and summarize routes at an Open Shortest Path First (OSPF) area boundary, use the area range command. To disable this function, use the no form of this command.
+
+<code>
+area area-id range ip-prefix [ not-advertise ]
+no area area-id range ip-prefix [ not-advertise ]
+</code>
+
+Syntax Description
+
+  * area-id: Identifier for the OSPF area where you want to summarize routes. The area ID can be from 0 to 4294967295 or an IP address.
+  * ip-prefix: IP prefix specified as IP address/subnet mask length ( A . B . C . D / LEN ).
+  * not-advertise: (Optional) Sets the address range status to DoNotAdvertise. The Type 3 summary LSA is suppressed, and the component networks remain hidden from other networks.
+
+
+
+**Router3 contains ”are” statements: the reason is that I type it fast ( are is area "are also works, it accept appreviation").**
+
+
+**L35 is in two areas:**
+
+// Source: //
+
+1- https://www.cisco.com/c/m/en_us/techdoc/dc/reference/cli/nxos/commands/ospf/area-range-ospf.html
+
+
+<WRAP center round tip 60%>Task 9. From router3 perform a traceroute to L5. Explain the output.</WRAP>
+
+** Answer: **
+<code>
+router3# traceroute 2001:0db8:0e02:0005::5
+traceroute to 2001:0db8:0e02:0005::5 (2001:db8:e02:5::5), 30 hops max, 80 byte packets
+ 1  2001:db8:e02:29::1 (2001:db8:e02:29::1)  1.727 ms  2.882 ms  1.127 ms
+ 2  2001:db8:e02:9::4 (2001:db8:e02:9::4)  2.546 ms  2.537 ms  2.586 ms
+ 3  * * *
+ 4  * 2001:db8:e02:5::5 (2001:db8:e02:5::5)  2.859 ms  2.813 ms
+</code>
+
+As we see above it goes from router1 and router4 to router5. The reason for that is that all inter trffic should go from the backbone router and these routers are (ABR) of both areas 1 and 2.

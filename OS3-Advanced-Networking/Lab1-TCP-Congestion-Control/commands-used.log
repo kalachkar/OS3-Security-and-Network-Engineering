@@ -1,0 +1,15 @@
+OS:
+sudo bash -c "echo \"reno\" > /proc/sys/net/ipv4/tcp_congestion_control"
+
+Source:
+sudo tc qdisc add dev eth1 root handle 1:0 netem delay 50ms loss 0%
+sudo modprobe -r tcp_probe
+sudo modprobe tcp_probe port=5001 full=1
+sudo dd if=/proc/net/tcpprobe ibs=128 obs=128 > /vagrant/tcpprobe_src.out &
+TCPCAP=$!
+iperf -c sink -Z reno -t 200
+sudo kill $TCPCAP
+sudo tc qdisc del dev eth1 root handle 1:0 netem delay 50ms loss 0%
+
+Sink:
+iperf -s

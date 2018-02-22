@@ -1,0 +1,975 @@
+                                                     
+                            CIA Lab Assignment:
+                           Mail Transfer Agents (1)
+                           
+          **THIS IS THE OLD CONFIGURATION, Please check the new one below.**
+
+**I work with Adrien and Shahrukh.
+My part is //Postfix//.**
+
+
+**Question 1.** As per usual, explain everything you have done in your log, and how.
+
+// To Install Postfix I will follow a turotial on "https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-postfix-on-ubuntu-16-04" //
+
+(a) First make sure that your system does not contain a pre-installed version of the MTA of your choice, if so, remove it before you continue.
+
+<code>
+kotaiba@bristol:~$ whereis postfix
+postfix:
+</code>
+
+Postfix is not installed.
+
+
+(b) Make sure the source code is retrieved from a secure location. Use the official
+website for the MTA of your choice.
+
+Postfix official website is "http://www.postfix.org/"
+
+<code>
+kotaiba@bristol:~$ sudo DEBIAN_PRIORITY=low apt-get install postfix
+</code>
+
+HERE (c) Because it is important that an MTA be correct and secure it is often signed using a digital PGP signature. If your MTA is signed then make sure3 you have downloaded the correct sources by checking the validity of the key and the signature.
+
+First I check which version I installed in order to get 
+<code>
+kotaiba@bristol:/etc/postfix$ postconf -d | grep mail_version
+mail_version = 3.1.0
+milter_macro_v = $mail_name $mail_version
+</code>
+
+(d) There are a number of options that you will have to enter before compilation, so that the functionality can be compiled into the program. Make sure the basic install holds all the necessary functionality. Show the options you configured.
+
+
+These are the settings that I used:
+
+1- General type of mail configuration?: Internet Site
+
+2- System mail name: bristol.prac.os3.nl
+
+3- Root and postmaster mail recipient: kotaiba
+
+4- Other destinations to accept mail for: $myhostname, bristol.prac.os3.nl, mail.bristol.prac.os3.nl, localhost.bristol.prac.os3.nl, localhost
+
+5- Force synchronous updates on mail queue?: No
+
+6- Local networks: 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+
+7- Mailbox size limit: 0
+
+8- Local address extension character: +
+
+9- Internet protocols to use: all
+
+**Question 2.** Most of the options for an MTA can be found in a configuration file that will be loaded when the MTA starts. It is recommended to start with an example configuration that looks a lot like what you need for now. Show how you adapt it to your
+needs
+
+
+By default, Postfix configuration files are in /etc/postfix. The two most important files are main.cf and master.cf;
+
+main.cf:
+<code>
+kotaiba@bristol:/etc/postfix$ cat main.cf 
+
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+
+
+# Debian specific:  Specifying a file name will cause the first
+# line of that file to be used as the name.  The Debian default
+# is /etc/mailname.
+#myorigin = /etc/mailname
+
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+readme_directory = no
+
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_use_tls=yes
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+# See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
+# information on enabling SSL in the smtp client.
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = bristol.studlab.os3.nl
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = $myhostname, bristol.prac.os3.nl, localhost.prac.os3.nl, , localhost
+relayhost = 
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+home_mailbox = Maildir/
+virtual_alias_maps = hash:/etc/postfix/virtual
+</code>
+
+Since I already adapted to what I need in previous steps, my configuration file is ready.
+
+
+**Before you proceed to question 3 we have to adjust setting that the postfix package did not prompt to us.**
+
+First, I will use the Maildir format, which separates messages into individual files that are then moved between directories based on user action. 
+
+<code>
+kotaiba@bristol:/etc/postfix$ sudo postconf -e 'home_mailbox= Maildir/'
+</code>
+
+set home_mailbox variable to Maildir/ which will create a directory structure under that name within the user's home directory.
+
+Second, set the location of the virtual_alias_maps table. This table maps arbitrary email accounts to Linux system accounts.
+
+<code>
+kotaiba@bristol:/etc/postfix$ sudo postconf -e 'virtual_alias_maps= hash:/etc/postfix/virtual'
+</code>
+
+**Question 3.** 
+
+(a) Add a local account on your experimental machine and make sure that the MTA can deliver mail to it. Show the required configuration.
+
+to do that we edit the /etc/postfix/virtual, and add the following:
+
+<code>
+postmaster@bristol.prac.os3.nl kotaiba
+test@bristol.prac.os3.nl  kotaiba
+</code>
+
+On the left, you can list any addresses that you wish to accept email for. Afterwards,  the Linux user you'd like that mail delivered to.
+
+Now, apply the mapping:
+
+<code>
+kotaiba@bristol:/etc/postfix$ sudo postmap /etc/postfix/virtual
+</code>
+
+Now, we have to setting up the Environment to Match the Mail Location:
+
+We should make sure our MAIL environmental variable is set correctly before we install a client. Because the client will inspect this variable to figure out where to look for user's mail.
+
+<code>
+kotaiba@bristol:/etc/postfix$ echo 'export MAIL=~/Maildir' | sudo tee -a /etc/bash.bashrc | sudo tee -a /etc/profile.d/mail.sh
+</code>
+
+Now, we  Install and Configure the Mail Client:
+
+In order to interact with the mail being delivered, we will install the s-nail package. 
+
+<code>
+kotaiba@bristol:/etc/postfix$ sudo apt-get install s-nail
+</code>
+
+Now we have to adjust a few settings, we add to /etc/s-nail.rc the following:
+
+<code>
+set emptystart
+set folder=Maildir
+set record=+sent
+</code> 
+This will allow the client to open even with an empty inbox. It will also set the Maildir directory to the internal folder variable and then use this to create a sent mbox file within that, for storing sent mail.
+
+Now, we have to initialize the directory structure:
+
+The easiest way to create the Maildir structure within our home directory is to send ourselves an email. 
+
+<code>
+kotaiba@bristol:/etc/postfix$ echo 'CIA' | mail -s 'CIA' -Snorecord kotaiba
+Can't canonicalize "/home/kotaiba/Maildir"
+</code>
+
+This is normal and will only show during this first message.
+
+let's check to make sure the directory was created by looking for our ~/Maildir directory:
+
+<code>
+kotaiba@bristol:/etc/postfix$ ls -R ~/Maildir
+/home/kotaiba/Maildir:
+cur  new  tmp
+
+/home/kotaiba/Maildir/cur:
+
+/home/kotaiba/Maildir/new:
+1506857367.V801I200105M385002.bristol  1506857394.V801I200109M308424.bristol
+1506857374.V801I200108M890398.bristol
+
+/home/kotaiba/Maildir/tmp:
+</code>
+
+Perfect, It looks like our mail has been delivered.
+
+<code>
+kotaiba@bristol:/etc/postfix$ mail
+s-nail version v14.8.6.  Type ? for help.
+"/home/kotaiba/Maildir": 3 messages 3 new
+>N  1 Mail Delivery Syst Thu Jan  1 01:00   68/2293  Undelivered Mail Returned t
+ N  2 Mail Delivery Syst Thu Jan  1 01:00   69/2325  Undelivered Mail Returned t
+ N  3 kotaiba            Thu Jan  1 01:00   14/452   CIA                        
+?
+</code>
+
+The first 2 email was type, so lets look at the 3rd one:
+
+<code>
+? 3
+[-- Message  3 -- 14 lines, 452 bytes --]:
+From kotaiba@bristol.prac.os3.nl Thu Jan  1 01:00:00 1970
+Date: Sun, 01 Oct 2017 13:29:54 +0200
+To: kotaiba@bristol.prac.os3.nl
+Subject: CIA
+Message-Id: <20171001112954.4A800520D9F@bristol.studlab.os3.nl>
+From: kotaiba@bristol.prac.os3.nl (kotaiba)
+
+CIA
+
+
+</code>
+
+(b) Add to your log an email received by this account. Do not forget the full
+headers!
+
+First, Sending Mail with the Client:
+
+I write my message content in "test_message" file.
+
+<code>
+kotaiba@bristol:~$ cat ~/test_message | mail -s 'Test CIA email subject line' -r UserTest test@bristol.prac.os3.nl
+</code>
+
+This will send message from "test@bristol.prac.os3.nl" to me with "Test CIA email subject line" subject.
+
+Let's check the inbox now :
+
+<code>
+kotaiba@bristol:~$ mail
+s-nail version v14.8.6.  Type ? for help.
+"/home/kotaiba/Maildir": 5 messages 5 new
+>N  5 UserTest@bristol.p Thu Jan  1 01:00   16/542   Test CIA email subject line                   
+? 5
+</code>
+
+Open it:
+
+<code>
+[-- Message  5 -- 16 lines, 542 bytes --]:
+From UserTest@bristol.prac.os3.nl Thu Jan  1 01:00:00 1970
+Date: Sun, 01 Oct 2017 13:44:04 +0200
+From: UserTest@bristol.prac.os3.nl
+To: test@bristol.prac.os3.nl
+Subject: Test CIA email subject line
+Message-Id: <20171001114404.71355520D96@bristol.studlab.os3.nl>
+
+Hello CIA Assignment,
+
+This is a test.  Please confirm receipt!
+
+</code>
+
+
+(c) Also make sure that any email intended for postmaster@<city>.prac.os3.nl
+is delivered to this account. Show the full email as delivered to the new account
+and the required configuration.
+
+
+
+----------------------------------------------------------------------------------------
+.
+
+.
+
+.
+
+.
+
+**AFTER DONE ALL OF THE PREVIOUS STEPS I DISCOVER THAT I DID A LOT OF MISTAKES AND I DONT WANT TO PROCEED WITH IT, SO IT WILL BE REALLY HARD TO FIX.
+
+SO NOW I WILL START AGAIN FROM THE BEGINNING :( :'( .**__ 
+
+before I start, lets delete everything related to Postfix
+
+<code>
+kotaiba@bristol:~$ sudo apt-get purge postfix
+</code>
+
+**Question 1.**
+
+(a) First make sure that your system does not contain a pre-installed version of the
+MTA of your choice, if so, remove it before you continue.
+
+<code>
+kotaiba@bristol:~$ whereis postfix
+postfix:
+kotaiba@bristol:~$ postfix
+-bash: postfix: command not found
+</code>
+
+(b) Make sure the source code is retrieved from a secure location. Use the official
+website for the MTA of your choice.
+
+According to http://www.postfix.org this is the official site for Amsterdam-Netherlands source.
+
+University of Utrecht:
+
+ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/official/postfix-3.2.3.tar.gz
+
+<code>
+kotaiba@bristol:~$ wget ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/official/postfix-3.2.3.tar.gz
+--2017-10-01 14:56:39--  ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/official/postfix-3.2.3.tar.gz
+           => ‘postfix-3.2.3.tar.gz’
+Resolving ftp.cs.uu.nl (ftp.cs.uu.nl)... 131.211.31.189
+Connecting to ftp.cs.uu.nl (ftp.cs.uu.nl)|131.211.31.189|:21... connected.
+Logging in as anonymous ... Logged in!
+==> SYST ... done.    ==> PWD ... done.
+==> TYPE I ... done.  ==> CWD (1) /mirror/postfix/postfix-release/official ... done.
+==> SIZE postfix-3.2.3.tar.gz ... 4390567
+==> PASV ... done.    ==> RETR postfix-3.2.3.tar.gz ... done.
+Length: 4390567 (4.2M) (unauthoritative)
+
+postfix-3.2.3.tar.gz     100%[=================================>]   4.19M  23.1MB/s    in 0.2s    
+
+2017-10-01 14:56:39 (23.1 MB/s) - ‘postfix-3.2.3.tar.gz’ saved [4390567]
+</code>
+
+(c) Because it is important that an MTA be correct and secure it is often signed using a digital PGP signature. If your MTA is signed then make sure3 you have downloaded the correct sources by checking the validity of the key and the signature.
+
+First, lets download the  Wietse's PGP key that sign this package and Import it.
+
+<code>
+kotaiba@bristol:~$ wget ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/wietse.pgp
+--2017-10-01 15:03:15--  ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/wietse.pgp
+           => ‘wietse.pgp’
+Resolving ftp.cs.uu.nl (ftp.cs.uu.nl)... 131.211.31.189
+Connecting to ftp.cs.uu.nl (ftp.cs.uu.nl)|131.211.31.189|:21... connected.
+Logging in as anonymous ... Logged in!
+==> SYST ... done.    ==> PWD ... done.
+==> TYPE I ... done.  ==> CWD (1) /mirror/postfix/postfix-release ... done.
+==> SIZE wietse.pgp ... 9281
+==> PASV ... done.    ==> RETR wietse.pgp ... done.
+Length: 9281 (9.1K) (unauthoritative)
+
+wietse.pgp               100%[=================================>]   9.06K  --.-KB/s    in 0.003s  
+
+2017-10-01 15:03:16 (3.06 MB/s) - ‘wietse.pgp’ saved [9281]
+</code>
+
+Import the key:
+<code>
+kotaiba@bristol:~$ gpg --allow-weak-digest-algos --import wietse.pgp
+gpg: key 80CA15A7: "Wietse Venema <wietse@porcupine.org>" not changed
+gpg: WARNING: digest algorithm MD5 is deprecated
+gpg: please see https://gnupg.org/faq/weak-digest-algos.html for more information
+gpg: key C12BCD99: public key "Wietse Venema <wietse@porcupine.org>" imported
+gpg: key D5327CB9: public key "wietse venema <wietse@porcupine.org>" imported
+gpg: Total number processed: 3
+gpg:               imported: 2  (RSA: 2)
+gpg:              unchanged: 1
+gpg: no ultimately trusted keys found
+</code>
+
+Now, Verifying the File's Signature:
+
+The Signed package signature.
+
+<code>
+kotaiba@bristol:~$ wget ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/official/postfix-3.2.3.tar.gz.sig
+
+--2017-10-01 14:58:49--  ftp://ftp.cs.uu.nl/mirror/postfix/postfix-release/official/postfix-3.2.3.tar.gz.sig
+           => ‘postfix-3.2.3.tar.gz.sig’
+Resolving ftp.cs.uu.nl (ftp.cs.uu.nl)... 131.211.31.189
+Connecting to ftp.cs.uu.nl (ftp.cs.uu.nl)|131.211.31.189|:21... connected.
+Logging in as anonymous ... Logged in!
+==> SYST ... done.    ==> PWD ... done.
+==> TYPE I ... done.  ==> CWD (1) /mirror/postfix/postfix-release/official ... done.
+==> SIZE postfix-3.2.3.tar.gz.sig ... 280
+==> PASV ... done.    ==> RETR postfix-3.2.3.tar.gz.sig ... done.
+Length: 280 (unauthoritative)
+
+postfix-3.2.3.tar.gz.sig 100%[=================================>]     280  --.-KB/s    in 0.002s  
+
+2017-10-01 14:58:50 (141 KB/s) - ‘postfix-3.2.3.tar.gz.sig’ saved [280]
+</code>
+
+<code>
+kotaiba@bristol:~$ gpg --allow-weak-digest-algos --verify postfix-3.2.3.tar.gz.sig postfix-3.2.3.tar.gz
+gpg: Signature made Sun 24 Sep 2017 02:37:53 PM CEST using RSA key ID C12BCD99
+gpg: WARNING: digest algorithm MD5 is deprecated
+gpg: please see https://gnupg.org/faq/weak-digest-algos.html for more information
+gpg: Good signature from "Wietse Venema <wietse@porcupine.org>"
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: FF 96 4A 8C 96 88 7C 6E  A4 EF AD BF 48 34 E1 BB
+</code>
+
+As we see above the Keys and Signatures are valid.
+
+
+(d) There are a number of options that you will have to enter before compilation, so that the functionality can be compiled into the program. Make sure the basic install holds all the necessary functionality. Show the options you configured.
+
+I checked postfix-3.2.3/README_FILES files in order to see options with configuration and I picked TLS from it.
+
+Now, according the TLS_README and http://www.postfix.org/TLS_README.html#build_tls I will Compile the Postfix with TLS option.
+
+First make the Makefile with TLS option:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo make makefiles CCARGS="-DUSE_TLS" AUXLIBS="-lssl -lcrypto"
+[sudo] password for kotaiba: 
+make -f Makefile.in MAKELEVEL= Makefiles
+(echo "# Do not edit -- this file documents how Postfix was built for your machine."; /bin/sh makedefs) >makedefs.tmp
+No <db.h> include file found.
+Install the appropriate db*-devel package first.
+Makefile.in:31: recipe for target 'Makefiles' failed
+make: *** [Makefiles] Error 1
+Makefile:22: recipe for target 'makefiles' failed
+make: *** [makefiles] Error 2
+</code>
+
+It gave me this error so now I have to "Install the appropriate db*-devel package first." Which is the Berkley db.
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo apt-get install libdb-dev
+</code>
+
+Now the "sudo make makefiles CCARGS="-DUSE_TLS" AUXLIBS="-lssl -lcrypto" command works.
+
+Now, we install:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ chmod +x postfix-install
+kotaiba@bristol:~/postfix-3.2.3$ sudo ./postfix-install
+</code>
+
+Unfortunately, It did't work, it gave me "Remember, "postfix" needs a dedicated user and group id."
+
+So I have to add it.
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo useradd postfix
+kotaiba@bristol:~/postfix-3.2.3$ sudo passwd postfix
+Enter new UNIX password: 
+Retype new UNIX password: 
+passwd: password updated successfully
+kotaiba@bristol:~/postfix-3.2.3$  sudo groupadd postdrop
+</code>
+
+Now we run:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo ./postfix-install
+</code>
+
+Now it works.
+
+
+**Question 2.** Most of the options for an MTA can be found in a configuration file that will be loaded when the MTA starts. It is recommended to start with an example configuration that looks a lot like what you need for now. Show how you adapt it to your
+needs.
+
+I added the following coniguration to  /etc/postfix/main.cf:
+
+<code>
+myhostname = bristol.prac.os3.nl
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, bristol.prac.os3.nl, localhost.prac.os3.nl, , localhost
+myorigin = /etc/mailname
+virtual_alias_maps = hash:/etc/postfix/virtual
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+</code>
+
+Now, we complete the configuration:
+First, I will use the Maildir format, which separates messages into individual files that are then moved between directories based on user action. 
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo postconf -e 'home_mailbox= Maildir/'
+</code>
+
+set home_mailbox variable to Maildir/ which will create a directory structure under that name within the user's home directory.
+
+Second, set the location of the virtual_alias_maps table. This table maps arbitrary email accounts to Linux system accounts.
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo postconf -e 'virtual_alias_maps= hash:/etc/postfix/virtual'
+</code>
+
+
+**Question 3.** 
+
+(a) Add a local account on your experimental machine and make sure that the MTA can deliver mail to it. Show the required configuration.
+
+First add a local account "os3":
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo useradd os3
+kotaiba@bristol:~/postfix-3.2.3$ sudo passwd os3
+Enter new UNIX password: 
+Retype new UNIX password: 
+passwd: password updated successfully
+</code>
+
+Now we add to /etc/postfix/virtual the following:
+<code>
+kotaiba@bristol.prac.os3.nl kotaiba
+os3@bristol.prac.os3.nl os3
+</code>
+
+We can apply the mapping:
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo postmap /etc/postfix/virtual
+</code>
+
+Now we start the Postfix:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo postfix start
+postfix/postfix-script: starting the Postfix mail system
+</code>
+
+Now we to make sure our MAIL environmental variable is set correctly. The client will inspect this variable to figure out where to look for user's mail.
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ echo 'export MAIL=~/Maildir' | sudo tee -a /etc/bash.bashrc | sudo tee -a /etc/profile.d/mail.sh
+
+export MAIL=~/Maildir
+</code>
+
+Last this to do is install Mail Client 'mailutils':
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo apt-get install mailutils
+</code>
+
+
+(b) Add to your log an email received by this account. Do not forget the full headers!
+
+First let's send an email:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ echo "Hello from the other side" | mail -s "Testing Email OS3" os3@bristol.prac.os3.nl
+</code>
+
+
+(c) Also make sure that any email intended for postmaster@<city>.prac.os3.nl is delivered to this account. Show the full email as delivered to the new account and the required configuration
+
+Added the following to  /etc/postfix/virtual:
+
+<code>
+postmaster@bristol.prac.os3.nl os3
+</code>
+
+Now, restart the Postfix:
+
+<code>
+kotaiba@bristol:~/postfix-3.2.3$ sudo postmap /etc/postfix/virtual
+kotaiba@bristol:~/postfix-3.2.3$ sudo newaliases
+kotaiba@bristol:~/postfix-3.2.3$ sudo systemctl restart postfix
+</code>
+
+Till this step everything goes well, but after that I couldn't check my mail because it's always empty.
+
+**After, full credits to Mick for helping to detect the problems and solve them one by one me.** 
+
+So now let's specify what was the problems:
+
+The problems was in the main.cf file, below is the previous configuration:
+
+<code>
+mydestination = $myhostname, bristol.prac.os3.nl, localhost.prac.os3.nl, , localhost
+myorigin = /etc/mailname
+</code>
+
+The new configuration:
+
+<code>
+mydestination = $myhostname
+myorigin = $myhostname
+</code>
+
+In addition to another problem which is my "/home/kotaiba/Maildir" was a file instead of directory for my inbox.
+
+<code>
+kotaiba@bristol:~$ rm Maildir
+kotaiba@bristol:~$ mkdir Maildir
+</code>
+
+Now, lets The full email to "postmaster@bristol.prac.os3.nl" for 'os3' user:
+
+Send mail log:
+<code>
+kalachkar@desktop-15:~$ telnet bristol.studlab.os3.nl 25
+Trying 2001:610:158:1046:145:100:104:163...
+Trying 145.100.104.163...
+Connected to bristol.studlab.os3.nl.
+Escape character is '^]'.
+220 bristol.prac.os3.nl ESMTP Postfix
+ehlo test@bristol.nl
+250-bristol.prac.os3.nl
+250-PIPELINING
+250-SIZE 10240000
+250-VRFY
+250-ETRN
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250 DSN
+mail from: test@bristol.nl
+250 2.1.0 Ok
+rcpt to: postmaster@bristol.prac.os3.nl
+250 2.1.5 Ok
+data
+354 End data with <CR><LF>.<CR><LF>
+Subject: Test Dogs
+Dogs Dogs Dogs
+
+.
+250 2.0.0 Ok: queued as 6204A520216
+quit
+221 2.0.0 Bye
+Connection closed by foreign host.
+</code>
+
+Log file:
+
+<code>
+Oct  3 15:04:56 bristol postfix/smtpd[29275]: connect from desktop-15.students.os3.nl[145.100.102.145]
+Oct  3 15:05:41 bristol postfix/smtpd[29275]: 6204A520216: client=desktop-15.students.os3.nl[145.100.102.145]
+Oct  3 15:05:57 bristol postfix/cleanup[29278]: 6204A520216: message-id=<>
+Oct  3 15:05:57 bristol postfix/qmgr[896]: 6204A520216: from=<test@bristol.nl>, size=259, nrcpt=1 (queue active)
+Oct  3 15:05:57 bristol postfix/local[29279]: 6204A520216: to=<os3@bristol.prac.os3.nl>, orig_to=<postmaster@bristol.prac.os3.nl>, relay=local, delay=30, delays=30/0/0/0, dsn=2.0.0, status=sent (delivered to maildir)
+Oct  3 15:05:57 bristol postfix/qmgr[896]: 6204A520216: removed
+Oct  3 15:05:59 bristol postfix/smtpd[29275]: disconnect from desktop-15.students.os3.nl[145.100.102.145] ehlo=1 mail=1 rcpt=1 data=1 quit=1 commands=5
+
+</code>
+
+
+
+
+Email with full header:
+
+<code>
+os3@bristol:~/Maildir$ mail
+"/home/os3/Maildir": 2 messages 2 unread
+>U   1                                      10/390   Testing dog
+ U   2                                      10/367   Test Dogs
+? 2
+Return-Path: <test@bristol.nl>
+X-Original-To: postmaster@bristol.prac.os3.nl
+Delivered-To: os3@bristol.prac.os3.nl
+Received: from test?bristol.nl (desktop-15.students.os3.nl [145.100.102.145])
+	by bristol.prac.os3.nl (Postfix) with ESMTP id 6204A520216
+	for <postmaster@bristol.prac.os3.nl>; Tue,  3 Oct 2017 15:05:27 +0200 (CEST)
+Subject: Test Dogs
+
+Dogs Dogs Dogs
+
+</code>
+
+
+
+
+**Question 4.** First, describe you have done on your own server to create two backup MTAs for your domain. Please do not describe how you made your server fallback for the other domains at the same time, that is the next question. This makes grading easier for the lab teachers.
+
+In order to make Shahurukh and Adrien servers as backup MTAs for me, I added the following to bristol.prac.os3.nl. zone:
+
+<code>
+IN MX 20 mail.foix.prac.os3.nl.
+IN MX 20 mail.brest.prac.os3.nl.
+</code>
+
+But for now, ( since my mates not here and I'm working on this in different time:
+
+I will add Tim server as my backup MTAs in :
+<code>
+IN MX 20 mail.grenoble.prac.os3.nl.
+</code> 
+
+
+5. Afterwards, describe what you have done on your own server to make it act as a
+backup for the two other domains.
+
+After that, I added in /etc/postfix/main.cf the following:
+
+<code>
+smtpd_recipient_restrictions = permit_mynetworks
+        permit_sasl_authenticated
+        check_relay_domains
+relay_domains = $mydestination
+        foix.prac.os3.nl
+        brest.prac.os3.nl
+</code>
+
+Then, in /etc/postfix/transport file, I added the following:
+
+<code>
+grenoble.prac.os3.nl smtp:[mail.grenoble.prac.os3.nl]
+</code>
+
+//Source://
+
+1- https://www.akadia.com/services/postfix_mx_backup.html
+
+
+6. Shutdown your MTA, send a mail to your domain and show
+
+<code>
+sudo service postfix stop
+</code>
+
+(a) The email is delivered to one of your colleaques.
+
+The Email Delivered to Tim :
+
+This result from Tim MTA:
+
+<code>
+2017-10-05 11:39:18 1e02cV-0005Ka-42 == kotaiba@bristol.prac.os3.nl R=dnslookup defer (-1): host lookup did not complete
+
+Test 1
+
+tzalingen 1000 1000
+<tzalingen@grenoble.prac.os3.nl>
+1507196347 0
+-ident tzalingen
+-received_protocol local
+-body_linecount 1
+-max_received_linelength 36
+-auth_id tzalingen
+-auth_sender tzalingen@grenoble.prac.os3.nl
+-allow_unqualified_recipient
+-allow_unqualified_sender
+-local
+XX
+1
+kotaiba@bristol.prac.os3.nl
+
+209P Received: from tzalingen by grenoble.prac.os3.nl with local (Exim 4.89)
+	(envelope-from <tzalingen@grenoble.prac.os3.nl>)
+	id 1e02cV-0005Ka-42
+	for kotaiba@bristol.prac.os3.nl; Thu, 05 Oct 2017 11:39:17 +0200
+037F From: tzalingen@grenoble.prac.os3.nl
+032T To: kotaiba@bristol.prac.os3.nl
+016  Subject: Test 1
+053I Message-Id: <E1e02cV-0005Ka-42@grenoble.prac.os3.nl>
+038  Date: Thu, 05 Oct 2017 11:39:15 +0200
+</code>
+
+**
+Note: I will add Adrien Log later since I tried with him.**
+
+(b) The email is delivered to your MTA when you turn it back on.
+
+<code>
+Return-Path: <kalachkar@os3.nl>
+X-Original-To: kotaiba@bristol.prac.os3.nl
+Delivered-To: kotaiba@bristol.prac.os3.nl
+Received: from brest.studlab.os3.nl (brest.studlab.os3.nl [145.100.104.106])
+	by bristol.prac.os3.nl (Postfix) with ESMTP id 99230520E6F
+	for <kotaiba@bristol.prac.os3.nl>; Mon,  9 Oct 2017 15:12:41 +0200 (CEST)
+Received: from mail.serv.os3.nl (mail.serv.os3.nl [145.100.96.25])
+	by brest.studlab.os3.nl (8.15.2/8.15.2) with ESMTP id v96FBQi3031712
+	for <kotaiba@bristol.prac.os3.nl>; Fri, 6 Oct 2017 17:11:26 +0200
+Received: from webmail.os3.nl (mail.serv.os3.nl [IPv6:2001:610:158:960::25])
+	by mail.serv.os3.nl (Postfix) with ESMTP id 2369D17AA2F
+	for <kotaiba@bristol.prac.os3.nl>; Fri,  6 Oct 2017 14:43:07 +0200 (CEST)
+Received: from 2001:610:158:1023:54ee:1f85:63d5:c319
+        (SquirrelMail authenticated user kalachkar)
+        by webmail.os3.nl with HTTP;
+        Fri, 6 Oct 2017 14:43:08 +0200
+Message-ID: <d34005daa2fe67cfcbf6cc6ffca5dfb8.squirrel@webmail.os3.nl>
+Date: Fri, 6 Oct 2017 14:43:08 +0200
+Subject: Test Backup
+From: kalachkar@os3.nl
+To: kotaiba@bristol.prac.os3.nl
+User-Agent: SquirrelMail/1.4.22
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+X-Priority: 3 (Normal)
+Importance: Normal
+
+Test Backup doy dogy dogs
+
+?
+</code>
+
+**Question 7.** Choose a console mail client that is available in the Ubuntu repositories, install it and configure it to read mail for the account added before.
+
+I will choose to install mutt:
+
+<code>
+sudo apt-get install mutt
+</code>
+
+Test Mutt:
+<code>
+y:Send  q:Abort  t:To  c:CC  s:Subj  a:Attach file  d:Descrip  ?:Help
+    From: kotaiba <kotaiba@bristol.prac.os3.nl>
+      To: tzalingen@grenoble.prac.os3.nl
+      Cc:
+     Bcc:
+ Subject: test
+Reply-To:
+     Fcc: ~/sent
+     Mix: <no chain defined>
+Security: None
+
+-- Attachments
+- I     1 /tmp/mutt-bristol-1000-6153-186392254220                     [text/plain, 7bit, us-ascii, 0.1K]
+</code>
+
+(a) Where does the client store read emails?
+
+ in file ~/Maildir
+
+(b) In what format?
+
+in Maildir format which is " a worldwide used e-mail storage format. It is structured as a structured folder, which allows emails to be stored, moved or deleted while maintaining integrity. Each e-mail is provided with a unique name and stored as a separate file."
+
+//Source://
+
+1- https://nl.wikipedia.org/wiki/Maildir
+
+**Question 8.** Briefly explain
+
+(a) what mail queues your mail server uses,
+
+Postfix contains the following queue's:
+
+<code>
+1- incoming
+2- active
+3- deferred
+4- maildrop
+5- hold
+</code>
+
+
+(b) what is their purpose:
+
+
+The "hold" queue:
+
+The "hold" queue plays little role in Postfix performance, and monitoring of the "hold" queue is typically more closely motivated by tracking spam and malware, than by performance issues.
+
+The "Incoming" queue:
+
+The name says it all, the queue for incoming email. The emails will stay here until they are ready to be processed by the cleanup service.
+
+
+Maildrop:
+
+Messages that are being submitted to be send, but have not yet been processed. The single treaded “pickup” service will pick these messages up one by one and move them to be processed.
+
+Deferred:
+
+Where the messages go that were released from the hold queue. Als if a message was failed to be delivered, it will be placed into this deferred queue.
+
+Active queue:
+
+Emails that are ready to be sent off onto the nets. Mind you this doesn't necessarily mean that the messages are in the process of being send.
+
+
+
+(c) where are they located on your machine and
+
+All the queues can be found in /var/spool/postfix/
+
+to prove it:
+
+<code>
+kotaiba@bristol:/var/spool/postfix$ ll
+total 84
+drwxr-xr-x 21 root     root     4096 Oct 11 11:25 ./
+drwxr-xr-x  7 root     root     4096 Oct 10 21:35 ../
+drwx------  2 postfix  root     4096 Oct 13 15:53 active/
+drwx------  2 postfix  root     4096 Oct 10 14:07 bounce/
+drwx------  2 postfix  root     4096 Oct  1 16:00 corrupt/
+drwx------  2 postfix  root     4096 Oct  1 16:00 defer/
+drwx------  2 postfix  root     4096 Oct  1 16:00 deferred/
+drwxr-xr-x  2 root     root     4096 Apr 13  2016 dev/
+drwxr-xr-x  2 root     root     4096 Oct 10 20:50 etc/
+drwx------  2 postfix  root     4096 Oct  1 16:00 flush/
+drwx------  2 postfix  root     4096 Oct  1 16:00 hold/
+drwx------  2 postfix  root     4096 Oct 13 15:53 incoming/
+drwxr-xr-x  2 root     root     4096 Apr 13  2016 lib/
+drwx-wx--T  2 postfix  postdrop 4096 Oct 13 15:53 maildrop/
+drwxr-xr-x  2 opendkim postfix  4096 Oct 13 14:22 opendkim/
+drwxr-xr-x  2 root     root     4096 Oct 13 15:53 pid/
+drwx------  2 postfix  root     4096 Oct 16 01:16 private/
+drwx--s---  2 postfix  postdrop 4096 Oct 16 01:02 public/
+drwx------  2 postfix  root     4096 Oct  1 16:00 saved/
+drwx------  2 postfix  root     4096 Oct  1 16:00 trace/
+drwxr-xr-x  3 root     root     4096 Oct  1 16:55 usr/
+</code>
+
+
+
+(d) how can you interact with them?
+ 
+Display a list of queued mail, deferred and pending:
+
+We use:
+
+<code>
+kotaiba@bristol:/usr/local/etc/nsd$ mailq
+Mail queue is empty
+</code>
+
+OR
+
+<code>
+kotaiba@bristol:/usr/local/etc/nsd$ postqueue -p
+Mail queue is empty
+</code>
+
+View message (contents, header and body) in Postfix queue:
+
+Assuming the message has the ID XXXXXXX (you can see the ID form the QUEUE)
+
+<code>
+postcat -vq XXXXXXXXXX
+</code>
+
+Tell Postfix to process the Queue now
+
+<code>
+postqueue -f
+</code>
+
+OR
+
+<code>
+postfix flush
+</code>
+
+Delete all queued mail
+
+<code>
+postsuper -d ALL
+</code>
+
+Delete differed mail queue messages (The ones the system intends to retry later)
+
+<code>
+postsuper -d ALL deferred
+</code>
+
+//Source://
+
+1- http://www.tech-g.com/2012/07/15/inspecting-postfixs-email-queue/
+
+2- https://www.wirehive.com/5-top-tips-reviewing-postfix-mail-queue/
+
+3- http://www.postfix.org/QSHAPE_README.html#queues

@@ -1,0 +1,759 @@
+                                    LS Lab Assignment:
+                                      Amazon EC2∗
+                                     
+<WRAP center round box 60%> **https://us-east-1.signin.aws.amazon.com/oauth** </WRAP>
+
+
+====== 1 Access ======
+
+First, I decrypted my credentials for Amazon EC2, using command provided my Arno:
+
+<code>
+kalachkar@desktop-41:~/Desktop$ openssl aes-128-cbc -d -out output.txt -in input.enc -a -pass pass:***
+</code>
+
+<WRAP center round tip 60%>
+Question 1. Create a keypair and download the pem file to a directory. Make sure you chmod it to 400. You will use the keypair to connect to your instances.</WRAP>
+
+**Answer:**
+
+In order to generate a key pair:
+
+This procedure is using web interface (GUI):
+Login using credentials --> Services --> Compute --> EC2 --> Key Pairs --> Create a new key pair.
+
+After you generate the key pair the private key file is automatically downloaded by your browser. The base file name is "kalachkar" as the name of your key pair, and the file name extension is .pem.  
+
+Now, let's set the permission of my private key:
+
+<code>
+kalachkar@desktop-41:~/Desktop$ chmod 400 kalachkar.pem
+</code>
+
+// Source: //
+
+1- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair
+
+====== 2 Adding Instances ======
+
+<WRAP center round tip 60%> Question 2. What is the difference between EBS and instance-store for VMs?</WRAP>
+
+**Answer:**
+
+General Usage:
+"All AMIs ( Amazon Machine Images ) are categorized as either backed by Amazon EBS or backed by instance store. The former means that the root device for an instance launched from the AMI is an Amazon EBS volume created from an Amazon EBS snapshot. The latter means that the root device for an instance launched from the AMI is an instance store volume created from a template stored in Amazon S3."
+
+In source[1] amazon provided a table to summarizes the important differences when using the two types of AMIs:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:amis.png?600|}}
+
+
+So the difference in general, is that Instance Store ( 10 GiB ) size limit for a root device is much more lower than the EBS ( 16 TiB ) and the boot time for an instance in EBS ( less than 1 min ) is much more faster that Instance Store ( less than 5 min ). 
+
+// Source: //
+
+1- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ComponentsAMIs.html
+
+
+
+<WRAP center round tip 60%> Question 3. Launch two (micro)instances of an Ubuntu 14.04 LAMP server (bitnami-lampstack-7.0.14-1-linux-ubuntu-14.04.3-x86 64-hvm-ebs in Community AMIs) (ami-10858f74). For now, use Security Group os3-allow.</WRAP>
+
+**Answer:**
+
+In order to create an instances, from the console dashboard, choose Launch Instance. Then, choose an Amazon Machine Image (AMI), and finally, choose an Instance Type, which is in my case "bitnami-lampstack-7.0.14-1-linux-ubuntu-14.04.3-x86_64-hvm-ebs - ami-f1a78c82". After that we choose 2 instances and enable auto IPv4 addressing. Next, we move to Configure Security Group and Select an existing security group "os3-allow". At the end I chose to use an existing key pair "kalachkar" ( that I created before ).
+
+I found the "bitnami-lampstack-7.0.14-1-linux-ubuntu-14.04.3-x86_64-hvm-ebs" but I couldn't find the exact ami that you asked for, so I will use "bitnami-lampstack-7.0.14-1-linux-ubuntu-14.04.3-x86_64-hvm-ebs - ami-f1a78c82"
+
+My instances are:
+
+1- kot-1 with IPV4 address 52.215.255.44
+2- kot-2 with IPV4 address 34.240.55.113
+
+
+// Source: //
+
+1- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html
+
+<WRAP center round tip 60%> Question 4. Use ssh to connect to both instances and change the web page to display the following, where # is a unique single digit id number for each instance.</WRAP>
+
+**Answer:**
+
+Since we already have public Ip addresses let's connect using ssh:
+
+First instance "kot-1":
+
+<code>
+kalachkar@desktop-41:~/Desktop$ ssh -i kalachkar.pem bitnami@52.215.255.44
+The authenticity of host '52.215.255.44 (52.215.255.44)' can't be established.
+ECDSA key fingerprint is SHA256:kk8k0mxVbHgyb+3H7+sth9l3zO6Ct09L4A2TUoHhTF4.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '52.215.255.44' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 14.04.5 LTS (GNU/Linux 3.13.0-107-generic x86_64)
+       ___ _ _                   _
+      | _ |_) |_ _ _  __ _ _ __ (_)
+      | _ \ |  _| ' \/ _` | '  \| |
+      |___/_|\__|_|_|\__,_|_|_|_|_|
+
+  *** Welcome to the Bitnami LAMP 7.0.14-1 ***
+  *** Documentation:  https://docs.bitnami.com/aws/infrastructure/lamp/ ***
+  ***                 https://docs.bitnami.com/aws/ ***
+  *** Bitnami Forums: https://community.bitnami.com/ ***
+bitnami@ip-10-0-1-31:~$ 
+</code>
+
+Second instance "kot-2":
+
+<code>
+kalachkar@desktop-41:~/Desktop$ ssh -i kalachkar.pem bitnami@34.240.55.113
+The authenticity of host '34.240.55.113 (34.240.55.113)' can't be established.
+ECDSA key fingerprint is SHA256:hMwrmanq686c3qFyqSg/u+g0C7rF4tb11NgRRSbQFu0.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '34.240.55.113' (ECDSA) to the list of known hosts.
+Welcome to Ubuntu 14.04.5 LTS (GNU/Linux 3.13.0-107-generic x86_64)
+       ___ _ _                   _
+      | _ |_) |_ _ _  __ _ _ __ (_)
+      | _ \ |  _| ' \/ _` | '  \| |
+      |___/_|\__|_|_|\__,_|_|_|_|_|
+
+  *** Welcome to the Bitnami LAMP 7.0.14-1 ***
+  *** Documentation:  https://docs.bitnami.com/aws/infrastructure/lamp/ ***
+  ***                 https://docs.bitnami.com/aws/ ***
+  *** Bitnami Forums: https://community.bitnami.com/ ***
+bitnami@ip-10-0-1-5:~$ 
+</code>
+
+Now, in order to change the web page for both instances, I have to change the default contents of html file which is ~/htdocs/index.html to:
+
+Instance #1 "kot-1":
+
+<code>
+
+<html>
+  <h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+
+</code>
+
+
+{{:2017-2018:students:kotaiba_alachkar:ls:kot-1.png?350|}}
+
+
+Instance #1 "kot-2":
+
+<code>
+
+<html>
+  <h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+
+</code>
+
+{{:2017-2018:students:kotaiba_alachkar:ls:kot-2.png?350|}}
+
+
+
+
+<WRAP center round tip 60%> Question 5. Test each web server instance using the DNS reference provided by Amazon.</WRAP>
+
+**Answer:**
+
+In order to test my web server. In a web browser, type the public DNS address (or the public IP address) of my instance; we should see the Apache test page. we can get the public DNS for your instance using the Amazon EC2 console (check the Public DNS column; if this column is hidden, choose Show/Hide Columns (the gear-shaped icon) and choose Public DNS).
+
+  * For kot-1 instance the public DNS address is ec2-52-215-255-44.eu-west-1.compute.amazonaws.com
+
+Test-1:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:kot-1-2.png?300|}}
+
+Test-2:
+
+<code>
+kalachkar@desktop-41:~$ host ec2-52-215-255-44.eu-west-1.compute.amazonaws.com
+ec2-52-215-255-44.eu-west-1.compute.amazonaws.com has address 52.215.255.44
+</code>
+
+  * For kot-2 instance the public DNS address is ec2-34-240-55-113.eu-west-1.compute.amazonaws.com
+
+Test-1:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:kot-2-2.png?300|}}
+
+Test-2:
+
+<code>
+kalachkar@desktop-41:~$ host ec2-34-240-55-113.eu-west-1.compute.amazonaws.com
+ec2-34-240-55-113.eu-west-1.compute.amazonaws.com has address 34.240.55.113
+</code>
+
+// Source: //
+
+1- http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-LAMP.html
+
+<WRAP center round tip 60%> Question 6. Measure the HTTP response time for each instance.</WRAP>
+
+**Answer:**
+
+
+I will use curl " transfer a URL" with a time_total (The total time, in seconds, that the full operation lasted.) option to get the response time of each instance.
+
+Instance 1 "kot-1":
+
+<code>
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://52.215.255.44/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.033038
+</code>
+
+<code>
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://34.240.55.113/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.036294
+</code>
+
+
+
+
+====== 3 Load Balancing ======
+
+<WRAP center round box 60%> Create a load balancer containing both LAMP servers </WRAP>
+
+I chose Application Load Balancer. 
+
+{{:2017-2018:students:kotaiba_alachkar:ls:lb.png?400|}}
+
+and I added to the target groups my two instances "kot-1" and "kot-2".
+
+Load Balancer name: kot-lb
+DNS name: kot-lb-511939526.eu-west-1.elb.amazonaws.com
+
+<WRAP center round tip 60%>
+Question 7. Test the load balancing server using the DNS reference provided by Amazon.</WRAP>
+
+**Answer:**
+
+<code>
+kalachkar@desktop-41:~$ curl http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+
+kalachkar@desktop-41:~$ curl http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+
+kalachkar@desktop-41:~$ host kot-lb-511939526.eu-west-1.elb.amazonaws.com
+kot-lb-511939526.eu-west-1.elb.amazonaws.com has address 52.214.76.177
+kot-lb-511939526.eu-west-1.elb.amazonaws.com has address 52.31.211.83
+</code>
+
+<WRAP center round tip 60%>
+Question 8. Which server is responding? And when?</WRAP>
+
+**Answer:**
+
+Both servers are responding since it is a load balancing " so we will get answers from both server", the load balancer distributes traffic evenly across all registered targets in all enabled Availability Zones. So each server has 50% probability to respond.
+
+// Source: //
+
+1- http://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html
+
+<WRAP center round tip 60%>
+Question 9. Measure the HTTP response time via the load balancer.</WRAP>
+
+**Answer:**
+
+Again I will use curl with time_total option:
+
+<code>
+kalachkar@desktop-41:~$  curl-w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.039870
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.040147
+</code>
+
+
+<WRAP center round box 60%> Now generate a continuous load (of work) on the most responsive of the instances. </WRAP>
+
+
+
+<WRAP center round tip 60%>
+Question 10. How does this influence the load balancer?</WRAP>
+
+**Answer:**
+
+In order to genereate a continuous load I will use AppacheBench "Apache HTTP server benchmarking tool"
+
+Since the responce is equally divided between the two servers, I will pick (RANDOMLY) the first one for the test.
+
+kot-1 : http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+
+  * -n 10000: ab will send 1000 number of requests to http://ec2-34-240-55-113.eu-west-1.compute.amazonaws.com/ in order to perform for the benchmarking session
+
+  * -c 5 : 5 is concurrency number i.e. ab will send 5 number of multiple requests to perform at a time.
+
+<code>
+kalachkar@desktop-41:~$ ab -n 10000 -c 5 http://ec2-34-240-55-113.eu-west-1.compute.amazonaws.com/
+This is ApacheBench, Version 2.3 <$Revision: 1757674 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking ec2-34-240-55-113.eu-west-1.compute.amazonaws.com (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        Apache
+Server Hostname:        ec2-34-240-55-113.eu-west-1.compute.amazonaws.com
+Server Port:            80
+
+Document Path:          /
+Document Length:        87 bytes
+
+Concurrency Level:      5
+Time taken for tests:   68.074 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      3630000 bytes
+HTML transferred:       870000 bytes
+Requests per second:    146.90 [#/sec] (mean)
+Time per request:       34.037 [ms] (mean)
+Time per request:       6.807 [ms] (mean, across all concurrent requests)
+Transfer rate:          52.07 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:       15   17   1.0     17      26
+Processing:    15   17   1.1     17      35
+Waiting:       15   17   1.1     17      35
+Total:         30   34   2.0     34      51
+
+Percentage of the requests served within a certain time (ms)
+  50%     34
+  66%     35
+  75%     35
+  80%     36
+  90%     37
+  95%     37
+  98%     37
+  99%     38
+ 100%     51 (longest request)
+</code>
+
+Now, Let's check the response time:
+
+<code>
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.040402
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.038620
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.050966
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.042203
+</code>
+
+As we see above the load balancer still use the both instances that we specified, but the response times are obviously much higher.
+
+
+// Source: //
+
+1- https://www.cyberciti.biz/tips/howto-performance-benchmarks-a-web-server.html
+
+<WRAP center round tip 60%>
+Question 11. Measure the HTTP response time both on the load balancer as well as on the separate web servers.</WRAP>
+
+**Answer:**
+
+<code>
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n ec2-52-215-255-44.eu-west-1.compute.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.036397
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n ec2-34-240-55-113.eu-west-1.compute.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.035253
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n http://kot-lb-511939526.eu-west-1.elb.amazonaws.com/
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.050200
+</code>
+
+<WRAP center round tip 60%>
+Question 12. Draw a conclusion from the results.</WRAP>
+
+**Answer:**
+
+As we see in previous question output, connecting to load balancer is slower than connecting to each instance directly. In addition to that, performing a continuous load on one of the instances the load balancer didn't care about it and it kept use the both instances for load balancing. However I check Amazon documentation about this, it say that the load balancer will keep use the instance if it's health ( using a health check, if the response time is more than 5 seconds ( by default ), the load balancer will take the instance out of service ( I will explain this in details in next question ).
+
+
+// Source: //
+
+1- http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-healthchecks.html
+
+
+<WRAP center round tip 60%>
+Question 13. What mechanism does the load balancer use to decide whether a server is overloaded?</WRAP>
+
+**Answer:**
+
+To discover the availability of your instances or if its overloaded, a load balancer periodically sends pings, attempts connections, or sends requests to test the EC2 instances. These tests are called health checks. The load balancer performs health checks on all registered instances, whether the instance is in a healthy state or an unhealthy state. The load balancer routes requests only to the healthy instances. When the load balancer determines that an instance is unhealthy, it stops routing requests to that instance. The health check configuration is as the following:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:hc.png?450|}}
+
+// Source: //
+
+1- http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-healthchecks.html
+
+
+<WRAP center round box 60%> Now add a Microsoft Windows Server 2016 Base instance (ami 06bcae62), and set up an IIS web server to serve the same page as the Ubuntu servers (you can change the #, for instance) </WRAP>
+
+{{:2017-2018:students:kotaiba_alachkar:ls:windows.png?400|}}
+
+After I created the windows instance, now I need to connect to it:
+
+
+<code>
+kot-W is on 52.50.26.238 =  http://ec2-52-50-26-238.eu-west-1.compute.amazonaws.com/
+</code>
+
+I will install and use the rdesktop for this.
+
+<code>
+kalachkar@desktop-41:~/rdesktop-1.6.0$ rdesktop -u Administrator ec2-52-50-26-238.eu-west-1.compute.amazonaws.com
+</code>
+
+{{:2017-2018:students:kotaiba_alachkar:ls:windows2.png?400|}}
+
+
+Now, I need to set up IIS web server. I followed tutorial on source[2].
+
+Now, let's test it:
+
+
+{{:2017-2018:students:kotaiba_alachkar:ls:windows3.png?400|}}
+
+Now, I need to change the default web page in "C:\inetpub\wwwroot\iisstart.html file to:
+
+<html>
+  <h1 align="center"> This page is served by kot-W number 3. </h1>
+</html>
+
+
+Test:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:windows4.png?400|}}
+
+
+
+// Source: //
+
+1- https://github.com/rdesktop/rdesktop/releases/tag/v1.6.0
+
+2- http://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/install-WIMP.html
+
+<WRAP center round tip 60%>
+Question 14. What are the advantages/disadvantages of a mixed setup?</WRAP>
+
+**Answer:**
+
+  * Advantages:
+From a security prospective in the mixed setup if one system turns to be vulnerable to a certain exploit, the second server ( system )will not affected in most cases and remain functional (e.g. if a ransomware targets windows machine we can rely on Linux machine ). In addition to that in the mixed setup it will be more resilient to application bugs (e.g. we rely on two different application stacks for the same purpose (IIS and LAMP) so if one of them failed we can rely on the other one), this will result in a resilient setup. 
+
+  * Disadvantages:
+The main one, is that it will be really hard from the administrative point of view, because the administrator need to work and handle two different stack.
+
+
+<WRAP center round tip 60%>
+Question 15. Re-test the load balancing server using the DNS reference provided by Amazon.</WRAP>
+
+**Answer:**
+
+Before we test the load balancing I added the "kot-w" instance to my load balancer registered targets.
+
+{{:2017-2018:students:kotaiba_alachkar:ls:windows5.png?300|}}
+
+Now, we can test:
+
+<code>
+kalachkar@desktop-41:~$ curl kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>IIS Windows Server</title>
+<style type="text/css">
+<!--
+body {
+	color:#000000;
+	background-color:#0072C6;
+	margin:0;
+}
+
+#container {
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center;
+	}
+
+a img {
+	border:none;
+}
+
+-->
+</style>
+</head>
+<body>
+<h1 align="center"> This page is served by kot-W number 3. </h1>
+</div>
+</body>
+
+</html>kalachkar@desktop-41:~$ curl kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+
+kalachkar@desktop-41:~$ curl kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+</code>
+
+As we notice, each time it gave me a different instance which means it is working.
+
+<WRAP center round tip 60%>
+Question 16. Which server is responding? And when?</WRAP>
+
+**Answer:**
+
+Again, all servers are response. Each instance has the 33.3333% probability to response (equally). 
+
+<code>
+kalachkar@desktop-41:~$ curl  kot-lb-511939526.eu-west-1.elb.amazonaws.com<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+
+kalachkar@desktop-41:~$ curl  kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>IIS Windows Server</title>
+<style type="text/css">
+<!--
+body {
+	color:#000000;
+	background-color:#0072C6;
+	margin:0;
+}
+
+#container {
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center;
+	}
+
+a img {
+	border:none;
+}
+
+-->
+</style>
+</head>
+<body>
+<h1 align="center"> This page is served by kot-W number 3. </h1>
+</div>
+</body>
+</html>
+
+kalachkar@desktop-41:~$ curl  kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+</code>
+
+
+
+<WRAP center round tip 60%>
+Question 17. Measure the HTTP response time via the load balancer.</WRAP>
+
+**Answer:**
+
+<code>
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>IIS Windows Server</title>
+<style type="text/css">
+<!--
+body {
+	color:#000000;
+	background-color:#0072C6;
+	margin:0;
+}
+
+#container {
+	margin-left:auto;
+	margin-right:auto;
+	text-align:center;
+	}
+
+a img {
+	border:none;
+}
+
+-->
+</style>
+</head>
+<body>
+<h1 align="center"> This page is served by kot-W number 3. </h1>
+</div>
+</body>
+</html>0.038623
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.039369
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 2. </h1>
+</html>
+0.040225
+
+kalachkar@desktop-41:~$ curl -w %{time_total}\\n kot-lb-511939526.eu-west-1.elb.amazonaws.com
+<html>
+  <head/><h1 align="center"> This page is served by kot number 1. </h1>
+</html>
+0.039753
+</code>
+
+
+====== 4 Security ======
+
+<WRAP center round tip 60%>
+Question 18. Create a Security Group for your web servers with reasonable inbound traffic rules. For example, you might want to limit certain traffic to sources from the OS3 network only. Explain your reasons.</WRAP>
+
+**Answer:**
+
+{{:2017-2018:students:kotaiba_alachkar:ls:sg.png?300|}}
+
+Since, this instances for educational purpose and I will terminate all of them after this question. I only allowed the OS3 address (Ipv4 and Ipv6) ranges for HTTP, SSH, ICMPv4 and ICMPv6. i allowed only Os3 address for SSH and HTTP so I will not get hacks from outside. however the reason also for ICMP is that outside world can't ping me or see if my instances is live or not. ( if we want to apply that for a real life scenario it will be different " I will add a lot or restrictions").
+
+====== 5 Termination ======
+
+<WRAP center round box 60%> Now terminate all your instances and especially your load balancer, they are really expensive. </WRAP>
+
+I deleted the load balancer and I terminated the 3 instances.
+
+<code>
+kot-1 i-09a84804b190af2a0  t2.micro  eu-west-1c terminated
+kot-2 i-0f273af22e59d3fb8  t2.micro  eu-west-1c terminated
+kot-w i-0c35f88201e9d5651  t2.micro  eu-west-1c terminated
+</code>
+
+
+<WRAP center round tip 60%>
+Question 19. How much money did it cost? Make a detailed bill based on your estimated usage.</WRAP>
+
+**Answer:**
+
+I used Amazon price calculator to do that:
+
+{{:2017-2018:students:kotaiba_alachkar:ls:billing.png?600|}}
+
+
+As we see, it costs me 67.36 $ per month ( however in our case, we got a product for use "e.g. windows server") so we can't divide the monthly billing to one day (as I used it only for one day).
+
+// Source: //
+
+1- https://calculator.s3.amazonaws.com/index.html
+
+
+
+<WRAP center round tip 60%>
+Question 20. Give an estimate of the costs if the services are used for a year.</WRAP>
+
+**Answer:**
+
+Based on my previous answer, the estimation cost will be 67.36 * 12 = 808.32 per year ( for a really limited functionalities that I already specified in the price calculator. 
+
+====== 6 Virtual Data Center ======
+
+<WRAP center round box 60%> A sysadmin argues that he can move ALL the storage, network, server (web, application, database), and security services of her company to the Amazon cloud. </WRAP>
+
+<WRAP center round tip 60%>
+Question 21. Do you think this is feasible with the current AWS services?</WRAP>
+
+**Answer:**
+
+Yes, AWS (Amazon Web Services) contains a lot of migration service that makes the sysadmin life easier. especially for the database ( since they support all types of databases), storage and everything. So it is feasible.  
+
+
+// Source: //
+
+1- https://aws.amazon.com/server-migration-service/faqs/
+
+
+<WRAP center round tip 60%>
+Question 22. Briefly explain how you would use each AWS service to implement the sysadmin’s plan.</WRAP>
+
+**Answer:**
+
+I can't answer with a specific details for this question, since it is really big scope to migrate your setup to AWS.
+
+Developers and architects looking to build new applications in the cloud can simply design the components, processes and workflow for their solution, employ the APIs of the cloud of their choice, and leverage the latest cloud-based best practices for design, development, testing and deployment. In choosing to deploy their solutions in a cloud-based infrastructure like Amazon Web Services (AWS), they can take immediate advantage of instant scalability and elasticity, isolated processes, reduced operational effort, on-demand provisioning and automation. However, the sysadmin should take into account that a successful migration largely depends on three things: the complexity of the application architecture; how loosely coupled your application is and how much effort you are willing to put into migration.
+
+The Sysadmin should follow a guide done by a researcher in source[2] to migrates the the company setup to AWS:
+
+
+{{:2017-2018:students:kotaiba_alachkar:ls:migration.png?600|}}
+
+
+In addition to that, Amazon has Server Migration Service (SMS) in additions to a lot of migration services that can do all of the works ( using software and sometimes third party application) 
+
+// Source: //
+
+1- https://aws.amazon.com/cloud-data-migration/, 2- https://d0.awsstatic.com/whitepapers/cloud-migration-main.pdf, 3- https://aws.amazon.com/backup-recovery/

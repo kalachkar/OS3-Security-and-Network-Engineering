@@ -1,0 +1,558 @@
+
+                       CIA Lab 2 Assignment: Computer Architecture
+
+
+
+**1.1 Binaries and scripts**
+1. Find examples of binaries and five different interpreter scripts (Hint: use the file
+command in “/usr/bin”)?
+
+We can search for only the binary files using whereis -b
+
+I- Binary: xkill
+
+<code>
+kalachkar@desktop-15:/usr/bin$ whereis xkill
+xkill: /usr/bin/xkill /usr/share/man/man1/xkill.1.gz  
+kalachkar@desktop-15:/usr/bin$ file xkill 
+xkill: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, 
+interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, 
+BuildID[sha1]=dca8e8842cd0151052be4473b45372cd1ae61691, stripped
+kalachkar@desktop-15:/usr/bin$ cat xkill 
+
+</code>
+
+II- Binary: tr
+
+<code>
+kalachkar@desktop-15:/usr/bin$ whereis tr
+tr: /usr/bin/tr /usr/share/man/man1/tr.1.gz
+kalachkar@desktop-15:/usr/bin$ file tr
+tr: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=9e38346c47e08de087e9c38df8a7cf1ec67f717f, stripped
+kalachkar@desktop-15:/usr/bin$ cat tr
+</code>
+
+
+II- Using the manual way to search and proof an Interpreter Script: lz 
+<code>
+kalachkar@desktop-15:/usr/bin$ whereis lz
+lz: /usr/bin/lz /usr/share/man/man1/lz.1.gz
+kalachkar@desktop-15:/usr/bin$ cat lz | head -2
+#!/bin/sh
+# Copyright 1994,2002 David C. Niemi.
+</code>
+
+III- Using grep to find all the files that contains "#!/" pattern which means that this file is an interpreter script:
+
+kalachkar@desktop-15:/usr/bin$ grep -rn '/usr/bin/' -e '#!/'
+This command will list all of these files so I will just put here 5.
+
+<code>
+1- /usr/bin/foo2oak-wrapper:1:#!/bin/sh
+2- /usr/bin/xrandr-tool:1:#!/usr/bin/python3
+3- /usr/bin/pnmindex:1:#!/bin/bash
+4- /usr/bin/dh_testroot:1:#!/usr/bin/perl
+5- /usr/bin/lcf:1:#!/bin/bash
+</code>
+
+Proof:
+
+<code>
+kalachkar@desktop-15:/usr/bin$ cat lcf | head -1
+#!/bin/bash
+</code>
+
+
+
+**1.2 Tracing binaries**
+2. Use “strace” to find what other system call besides “stat” “zsh” uses before
+executing an “execve” system call? (Hint: use the “-c” option of “zsh”)
+
+First, I installed zsh on my server.
+kotaiba@bristol:~$ sudo apt-get install zsh
+
+
+kotaiba@bristol:~$ man zsh / for -c option
+
+Take the first argument as a command  to  execute,  rather  than
+reading  commands  from a script or standard input.  If any fur‐
+ther arguments are given, the  first  one  is  assigned  to  $0,
+rather than being used as a positional parameter.
+
+kotaiba@bristol:~$ strace zsh -c stat
+
+The system call:
+brk, nmao, open, fstat, read, mprotect, readlink, munmap, lseek, rt_sigprocmask, fcntl.
+
+
+//Sources://
+1- http://www.thegeekstuff.com/2011/11/strace-examples/
+
+
+**1.3 Stracing strace**
+3. (Bonus) Run “strace /bin/pwd” and save the result. Also run “strace strace /bin/pwd” and save the result. How are these outputs related? Explain the “2” in “write(2, ...”.
+
+
+
+
+**1.4 ELF format**
+4. Execute “readelf -Wh <<your favorite ELF binary>>”.
+Match the results for the ELF header with the information on ELF’s Wikipedia
+page. Is this a definitive source for the ELF format? If not, what is?
+
+-Wh option means: W = wide, h = File Header
+
+a- kalachkar@desktop-15:~$ readelf -Wh /usr/bin/xkill 
+  ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x4015d0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          12888 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         9
+  Size of section headers:           64 (bytes)
+  Number of section headers:         28
+  Section header string table index: 27
+  
+**So AFTER FEED BACK THE COMPARISON with Wikipedia IS:**
+
+<code>
+readelf	Wikipedia	result
+Magic	Magic	same
+Class	Class	same, signifies 32-bit or 64-bit format
+Data	Data	same, big- or little-endian indicator
+Version	Version	same
+OS/ABI	OSABI	same
+ABI Version	ABI Version	same
+Type	Type	same
+Machine	Machine	same
+Version	Version	same
+Entry point address	Entry	same
+Start of program headers	start of program header table	same
+Start of section headers	start of section header table	same
+Flags	Interpretation of this field depends on the target architecture	Here, we would need to refer to the Linux Programmer's Manual.
+Size of this header	size of this header, normally 64 Bytes for 64-bit and 52 Bytes for 32-bit format.	same
+Size of program headers	size of a program header table entry	same
+Number of program headers	number of entries in the program header table	same
+Size of section headers	size of a section header table entry	same
+Number of section headers	number of entries in the section header table	same
+Section header string table index	index of the section header table entry that contains the section names	same
+</code>
+
+b- No, its not a definitive source for the ELF format, because the ELF header specify whether to use 32- or 64-bit addresses and it contains three fields that are affected by this setting and offset other fields that follow them. In other words, these fields are identified based on different cases for example: OS/ABI: identified by the target OS so it can be Solaris or FreeBSD and so on.
+
+//Sources://
+1- https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header
+
+
+5. Also inspect the section and program headers, using the command “readelf -WlS <<your favorite ELF binary>>”.
+(a) Explain which of the two header types (section or program) is used in which
+context (loader/runtime or linker/relocation)?
+
+
+(b) Explain the use of each of the following sections: .text, .data, .rodata
+and .bss. (Hint: Consider Type and Flg)
+
+
+(c) What does the program header with Type INTERP contain?
+
+
+
+
+**2 The gcc compiler**
+
+7. Make your own version of the “Hello OS3!”-program, by just only varying the string. Can you come up with a creative text? Find all four phases in the compilation by running “gcc -v -o hello hello.c”.
+
+-o = place output in a file name 'hello'.
+-v = print the commands executed to run the stages of compilation.
+
+File Extension Types :
+
+hello.c : C source code that must be preprocessed.
+hello.s : Assembler code.
+hello.o : The object code of the program.
+hello.i : C source code that should not be preprocessed.
+
+The Four Stages of Compiling a C program:
+
+I- Preprocessing:
+It is the first stage in the compilation process. The lines starting with a # are interpreted by the preprocessor as preprocessor commands. These commands is used to reduce repetition in source code by providing functionality to inline lines and to conditionally omit the code. 
+To print result of this stage: gcc -E hello.c
+
+-E = Stop after the preprocessing stage and the output is in the form of preprocessed source code.
+
+# 944 "/usr/include/stdio.h" 3 4
+# 2 "hello.c" 2
+# 3 "hello.c"
+
+int main(int argc, char *argv[])
+{
+  printf("Give me a break and bring me back to life!\n");
+  return 2017;
+
+}
+
+The preprocessor with give contend of studio.h header file joined the contents of hello.c file.
+
+
+II- Compilation:
+In this stage, the preprocessed code is translated to assembly specific to the target processor architecture. This step allows the C code to contain inline assembly instructions and for different assemblers to be used.
+To print result of this stage: gcc -S hello.c
+
+-S = Stop after the stage of compilation. Do not assemble. the output is in the form of an assembler code file. 
+
+It creates a file called hello.s, containing the generated assembly instructions.
+
+
+III- Assembly:
+In this stage the assembler is used to translate the assembly instructions to machine code or object code,
+To print result of this stage: gcc -c hello.c
+
+-c = Compile or assemble the source files, but do not link. The output is in the form of an object file for each source file.
+In order to inspect this file contents we use hexdumb hello.o
+
+
+IV- Linking:
+
+The machine code generated in the assembly stage is composed of machine instructions  that the processor understands but some pieces of the program are missed. To produce an executable program, these pieces have to be rearranged and the missing ones filled in. This process is called Linking.
+The result of this stage is the final executable program. When run without option -o the gcc will name it a.out
+
+cc -o hello hello.c
+
+
+//Sources://
+1- https://www.calleerlandsson.com/the-four-stages-of-compiling-a-c-program/
+2- Computer Architecture slides we took in class.
+
+8. Run “gcc -E hello.c”, producing the file “hello.i”.
+What are the numbers at the end of the lines in “hello.i” supposed to mean?
+
+Source file name and line number is conveyed by line of the form:
+# Linenum filename flags
+these numbers are flags, which are '1', '2', '3', or '4'.
+'1' = this indicates the start of a new file.
+'2' = this indicates returning to a file.
+'3' = this indicates that the following text comes from a system header file.
+'4' = this indicates that the following text should be treated as being wrapped in an implicit extern "C" block.
+
+
+9. Run “gcc -S hello.i”, producing the file “hello.s” Inspect “hello.s”. Where has “printf” gone? Remove the newline at the end of the string in “hello.c” and look again at the resulting “hello.s”. Explain.
+
+First lets put the differences with the call function in the code when we have \n and when we don't have.
+
+With '\n':
+call	puts@PLT
+
+Without '\n':
+call	printf@PLT
+
+As we noticed when we removed the '\n' the printf function is clearly exist in the code.
+But the question is why we have puts instead of printf ? Because '\n' is not an assembly language constant. That's why it replaced printf function with another function which is puts@PLT. Because puts() will automatically appends a new line which is the same as '\n' in the end of the string.
+
+//Sources://
+1- https://stackoverflow.com/questions/10401599/can-we-use-n-in-assembly
+2- https://stackoverflow.com/questions/2454474/what-is-the-difference-between-printf-and-puts-in-c
+
+
+10. Run “gcc -c hello.s”, producing the file “hello.o”. Use “objdump -rd hello.o” to inspect this relocatable object file. Explain why this piece of machine code is (not yet) executable.
+
+
+hello.o is the object code of the program which produced in the assembly stage. In general the executable file does not contains only object code. It contains in addition to the machine code carious metadata to assist the operating system in locating the dependencies (in case the program is use external libraries which is in our case <stdio.h>) and also various static data embedded within. All of these happened in the Linking stage which will arrange the pieces of object code so that functions in some pieces can successfully call functions in other pieces, because the object code in the assembly stage contains machine instructions that the processor understand but some pieces of program are missing.
+
+//Sources://
+1- https://stackoverflow.com/questions/24973973/is-exe-made-of-pure-machine-code-only
+
+
+11. Run “gcc -o hello hello.o”, producing the file “hello”. Use “ltrace hello” to see what library calls your program makes. Run “ltrace -S” to also see the system calls.
+What is the actual exit code of your program? Can you explain this? (Hint: try a “smaller version” of 2017)
+
+First, the hello file is LSB shared object. So thanks for your email to make LSB executable. 
+<code>
+kalachkar@desktop-15:~/Desktop$ gcc -no-pie -o hello-exe hello.c
+</code>
+Now we have LSB executable so ltrace will understand it.
+
+<code>
+kalachkar@desktop-15:~/Desktop$ ltrace ./hello-exe 
+puts("Give me a break and bring me bac"...Give me a break and bring me back to life!
+)                 = 43
++++ exited (status 225) +++
+</code>
+
+We have only one function calls which is puts().
+<code>
+kalachkar@desktop-15:~/Desktop$ ltrace -S ./hello-exe 
+SYS_brk(0)                                                  = 0xd8c000
+SYS_access("/etc/ld.so.nohwcap", 00)                        = -2
+SYS_mmap(0, 0x3000, 3, 34)                                  = 0x7f08bd2a4000
+SYS_access("/etc/ld.so.preload", 04)                        = -2
+SYS_open("/etc/ld.so.cache", 524288, 01)                    = 3
+SYS_fstat(3, 0x7ffdb5f33310)                                = 0
+SYS_mmap(0, 0x1f0cf, 1, 2)                                  = 0x7f08bd284000
+SYS_close(3)                                                = 0
+SYS_access("/etc/ld.so.nohwcap", 00)                        = -2
+SYS_open("/lib/x86_64-linux-gnu/libc.so.6", 524288, 027512510550) = 3
+SYS_read(3, "\177ELF\002\001\001\003", 832)                 = 832
+SYS_fstat(3, 0x7ffdb5f33350)                                = 0
+SYS_mmap(0, 0x3c69a0, 5, 2050)                              = 0x7f08bccbb000
+SYS_mprotect(0x7f08bce79000, 2093056, 0)                    = 0
+SYS_mmap(0x7f08bd078000, 0x6000, 3, 2066)                   = 0x7f08bd078000
+SYS_mmap(0x7f08bd07e000, 0x39a0, 3, 50)                     = 0x7f08bd07e000
+SYS_close(3)                                                = 0
+SYS_mmap(0, 8192, 3, 34)                                    = 0x7f08bd282000
+SYS_arch_prctl(4098, 0x7f08bd282700, 0xffff80f742d7d000, 34) = 0
+SYS_mprotect(0x7f08bd078000, 16384, 1)                      = 0
+SYS_mprotect(0x600000, 4096, 1)                             = 0
+SYS_mprotect(0x7f08bd2a7000, 4096, 1)                       = 0
+SYS_munmap(0x7f08bd284000, 127183)                          = 0
+puts("Give me a break and bring me bac"... <unfinished ...>
+SYS_fstat(1, 0x7ffdb5f33ab0)                                = 0
+SYS_brk(0)                                                  = 0xd8c000
+SYS_brk(0xdad000)                                           = 0xdad000
+SYS_write(1, "Give me a break and bring me bac"..., 43Give me a break and bring me back to life!
+)     = 43
+<... puts resumed> )                                        = 43
+SYS_exit_group(2017 <no return ...>
++++ exited (status 225) +++
+</code>
+
+As we see the actual exit code is (255), which means exit status out of range because exit takes only integer args in the range 0-255 and here we return '2017'.
+
+Whatever I try to put as return value in main, It gave me a different exit code. 
+
+**AFTER FEEDBACK CORRECTION**
+
+I used:
+
+<code>
+kalachkar@desktop-15:~/Desktop$ bash -c 'exit 2017'; echo $?
+225
+</code>
+
+This means that the number is an unsigned byte. When using 255 it works; when using 256 it shows zero.
+
+
+//Sources://
+1- http://gcc.gnu.org/onlinedocs/cpp/Preprocessor-Output.html
+1- https://www.calleerlandsson.com/the-four-stages-of-compiling-a-c-program/
+3- http://tldp.org/LDP/abs/html/exitcodes.html
+
+
+
+3 Inline assembly
+
+12. Create assembly language (for OS3 ASM) for calculating the following formulas,
+where a, b, c and d are (unsigned) 64-bit integers.
+
+I- a+b
+In order to have better illustration on the results I put the values of to : rax, rbx, rcx, rdx to 0x00
+
+<code>
+uint64_t rax = 0x00;
+uint64_t rbx = 0x00;
+uint64_t rcx = 0x00;
+uint64_t rdx = 0x00;
+</code>
+
+Now, the addition process for a = 7 and b = 2:
+
+<code>
+#define OS3_ASM \
+    "addq $7, %%rax;" \
+    "addq $2, %%rbx;" \
+    "addq %%rbx, %%rcx;" \
+    "addq %%rax, %%rcx;"
+</code>
+
+It gives me this result:
+
+<code>
+kalachkar@desktop-15:~/Desktop$ ./a.out 
+Before assembly code...
+rax: 0000000000000000
+rbx: 0000000000000000
+rcx: 0000000000000000
+rdx: 0000000000000000
+
+After assembly code...
+rax: 0000000000000007
+rbx: 0000000000000002
+rcx: 0000000000000009
+rdx: 0000000000000000
+</code>
+
+II- bc
+
+For multiplication we use imultq:
+
+<code>
+#define OS3_ASM \
+    "movq $4, %%rax;" \
+    "movq $2, %%rbx;" \
+    "movq %%rbx, %%rcx;" \
+    "imulq %%rax, %%rcx;"
+</code>
+
+<code>
+kalachkar@desktop-15:~/Desktop$ ./a.out 
+Before assembly code...
+rax: 0000000000000000
+rbx: 0000000000000000
+rcx: 0000000000000000
+rdx: 0000000000000000
+
+After assembly code...
+rax: 0000000000000004
+rbx: 0000000000000002
+rcx: 0000000000000008
+rdx: 0000000000000000
+
+</code>
+
+
+III- b^2 - 4ac
+
+I assumed b = 4, a = 2, c = 3
+
+I will clarify using line number.
+1- put 4 in b
+2- Multiply b by itself and store it in b
+3- put 2 in a
+4- multiply 4 with a and store it in a
+5- put 3 in c
+6- multiply a with c and store it in c 
+7- subtract c from b
+
+<code>
+#define OS3_ASM \
+    "movq $4, %%rbx;" \
+    "imulq %%rbx, %%rbx;" \
+    "movq $2, %%rax;" \
+    "imulq $4, %%rax;" \
+    "movq $3, %%rcx;" \
+    "imulq %%rax, %%rcx;" \
+    "subq %%rbx, %%rcx;"  
+
+</code>
+
+
+<code>
+kalachkar@desktop-15:~/Desktop$ ./a.out 
+Before assembly code...
+rax: 0000000000000000
+rbx: 0000000000000000
+rcx: 0000000000000000
+rdx: 0000000000000000
+
+After assembly code...
+rax: 0000000000000008
+rbx: 0000000000000010
+rcx: 0000000000000008
+rdx: 0000000000000000
+</code>
+
+
+IV- d^4 + d^3 + d^2 + d + 1
+
+I assumed d = 2
+
+I will clarify only first d^4 because the others same process.
+
+Lines 1-4: put 2 in address %%rax and multiply it by 2 four times so we get same result as 2^4
+
+Notice that I can write it in simpler way, but I have no time. However, if you want me to do that. I WILL. Because this assembly code is really HARD CODED.
+
+<code>
+#define OS3_ASM \
+    "addq $2, %%rax;" \
+    "imulq $2, %%rax;" \
+    "imulq $2, %%rax;" \
+    "imulq $2, %%rax;" \
+    "addq $2, %%rbx;" \
+    "imulq $2, %%rbx;" \
+    "imulq $2, %%rbx;" \
+    "movq $2, %%rcx;" \
+    "imulq $2, %%rcx;" \
+    "addq $2, %%rdx;" \
+    "addq %%rax, %%rdx;" \
+    "addq %%rbx, %%rdx;" \
+    "addq %%rcx, %%rdx;" \
+    "addq $1, %%rdx;" 
+</code>
+
+
+Output:
+
+<code>
+kalachkar@desktop-15:~/Desktop$ ./a.out 
+Before assembly code...
+rax: 0000000000000000
+rbx: 0000000000000000
+rcx: 0000000000000000
+rdx: 0000000000000000
+
+After assembly code...
+rax: 0000000000000010
+rbx: 0000000000000008
+rcx: 0000000000000004
+rdx: 000000000000001f
+<code>
+
+Hex to number:
+0000000000000010 = 16
+0000000000000008 = 8
+0000000000000004 = 4
+000000000000001f = 31
+
+lets write it assuming d = 2:
+
+2^4 + 2^3 + 2^2 + 2 + 1 = 1
+
+
+//Sources://
+1- https://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax
+2- https://www3.nd.edu/~dthain/courses/cse40243/fall2015/intel-intro.html
+
+
+
+14. Compile the program above with the “-g” flag to generate debugging information.
+Run the program. What is the purpose of these bytes (15, 162)?
+
+the bytes .byte 15 and .byte 162 represent the CPUID instruction.
+
+
+//Source://
+1- https://stackoverflow.com/questions/35230027/what-does-byte-mean-in-this-asm-line/35230349#35230349
+
+
+15. Why does the program exit with 052?
+
+GDB:
+<code>
+Starting program: /sne/home/kalchkar/Desktop/inspect 
+GenuineIntel
+[Inferior 1 (process 4957) exited with code 052]
+<code>
+
+In terminal:
+<code>
+kalachkar@desktop-15:~/Desktop$ ./inspect 
+GenuineIntel
+kalachkar@desktop-15:~/Desktop$ echo $?
+42
+</code>
+
+After asking my colleague Tim the exit-code of gdb is in octal format. If you convert 52 from octal to decimal it will give you 42 . Which means that when we used the exit code of last command we used in the terminal it gives the exit-code in decimals and gdb in octal format. So 053 is the same as 42.
+
+
+

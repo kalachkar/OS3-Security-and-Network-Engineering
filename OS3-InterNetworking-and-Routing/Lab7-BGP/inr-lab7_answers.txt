@@ -1,0 +1,992 @@
+                                INR Lab Assignment:
+                                       BGP
+                                     
+
+====== Preparation ======
+
+
+<WRAP center round tip 60%> Task 1. This question contains three points </WRAP>
+
+** Answer: **
+
+  * Point 1:
+Done.
+  * Point 2: create a bridge named xenbr1 and attach the second interface (eno2) of your server to it, such that all traffic on that interface is delivered to the bridge:
+<code>
+root@bristol:/home/kotaiba# brctl addbr xenbr1
+root@bristol:/home/kotaiba# brctl addif xenbr1 eno2
+device eno2 is already a member of a bridge; can't enslave it to bridge xenbr1.
+
+root@bristol:/home/kotaiba# brctl show
+bridge name	bridge id		STP enabled	interfaces
+xenbr0		8000.feffffffffff	no		vif10.0
+							vif12.0
+							vif14.0
+							vif7.0
+xenbr1		8000.d4ae52bfe4db	no		eno2
+</code>
+
+Make it up:
+
+<code>
+root@bristol:/home/kotaiba# ip link set xenbr1 up
+
+root@bristol:/home/kotaiba# ifconfig xenbr1
+xenbr1    Link encap:Ethernet  HWaddr d4:ae:52:bf:e4:db  
+          inet addr:192.168.0.11  Bcast:192.168.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::d6ae:52ff:febf:e4db/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:1184 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:74 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:61299 (61.2 KB)  TX bytes:8434 (8.4 KB)
+</code>
+
+  * Point 3: extend the “vif =” line in your /etc/xen/ <DomU-hostname>.cfg, as follows.
+<code>
+vif         = [ 'ip=145.100.108.83 ,mac=00:16:3E:B3:F7:B3,bridge=xenbr0', 'mac=00:16:3e:dd:ee:ff,bridge=xenbr1' ]
+</code>
+
+Now we reboot the Guest-02 VM:
+<code>
+root@bristol:/home/kotaiba# xl reboot Guest-02
+Rebooting domain 12
+</code>
+
+Test after make eth1 interface up:
+
+<code>
+root@Guest-02:~# ip link set eth1 up
+
+root@Guest-02:~# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 145.100.108.83  netmask 255.255.255.240  broadcast 145.100.108.95
+        inet6 fe80::216:3eff:feb3:f7b3  prefixlen 64  scopeid 0x20<link>
+        ether 00:16:3e:b3:f7:b3  txqueuelen 1000  (Ethernet)
+        RX packets 150  bytes 6870 (6.8 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 37  bytes 2534 (2.5 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::216:3eff:fedd:eeff  prefixlen 64  scopeid 0x20<link>
+        ether 00:16:3e:dd:ee:ff  txqueuelen 1000  (Ethernet)
+        RX packets 469  bytes 24932 (24.9 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 3  bytes 266 (266.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 166  bytes 12356 (12.3 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 166  bytes 12356 (12.3 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lxcbr0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 10.0.3.1  netmask 255.255.255.0  broadcast 0.0.0.0
+        ether 00:16:3e:00:00:00  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+</code>
+
+<WRAP center round tip 60%> Task 2. Get the latest version of the pogo script from gitlab. In the configurations directory you will find a blank configuration for your BGP network (Figure 3). Adjust it to match your own IP addressing scheme given in Figure 4). Create the network with pogo.</WRAP>
+
+** Answer: **
+
+ZZ = 11
+<code>
+Name O           S3-IX IP    AS    IPv4 Block
+Kotaiba Alachkar 172.16.0.11 64611 10.11.0.0/16
+</code>
+
+bgp.cfg file:
+
+<code>
+################################################################################
+#GLOBAL CONFIG
+################################################################################
+#
+#                                        10.66.0.0/16
+#
+#
+#
+#                        10.66.1.0/24    10.66.14.0/24       10.66.4.0/24
+#                         --+--               v                 --+--
+#                           |                 v                   |
+#                        .1 |  eth0           v                .4 |   eth0
+#                      +----+----+            v              +---------+
+#172.16.0.0/24         |         |eth2        v          eth2|         |
+#  OS3 IX              | Router1 +---------------------------+ Router4 |
+# ----+----            |         |.1                      .4 |         |
+#     |                +----+----+                           +----+----+
+#     |                eth1 |.1                               eth1| .4
+#     | eth2                |                                     |
+#     |  +----------+       |                                     |
+#     |  |          |eth1   |  10.66.123.0/24                     |
+#     |--+ Router2  +-------+  <<<<<<<<<<<<<           >>>>>>>>>> |
+#     .2 |          |.2     |                       10.66.45.0/24 |
+#        +----------+       |                                     |
+#         .2  | eth0                                              |
+#             |         eth1| .3                              eth1| .5
+#           --+--      +----+-----+                          +----+-----+
+#        10.66.2.0/24  |          |eth2                  eth2|          |
+#                      |  Router3 +--------------------------+  Router5 |
+#                      |          |.3         ^            .5|          |
+#                      +----+-----+           ^              +-----+----+
+#                       .3  | eth0            ^                 .5 |eth0
+#                           |                 ^                    |
+#                         --+--               ^                  --+--
+#                      10.66.3.0/24           ^              10.66.5.0/24
+#                                             ^
+#                                       10.66.35.0/24
+
+[global]
+
+session_path = /tmp
+
+#memory per uml instance
+mem = 50M
+root_image= /tmp/uml_debian.img
+hubs = 10 
+
+################################################################################
+#HOST CONFIG
+################################################################################
+
+[router1]
+role= router
+home=/root/uml_home
+pass_quaggadir="/root/pogo/configurations/bgp/router1"
+eth1 = 0,10.11.1.1/24
+eth123 = 5,10.11.123.1/24
+eth14 = 6,10.11.14.1/24
+
+[router2]
+role = router
+home=/root/uml_home
+pass_quaggadir="/root/pogo/configurations/bgp/router2"
+eth2 = 9,172.16.0.11/24
+eth123 = 5,10.11.123.2/24
+
+
+[router3]
+role = router
+home=/root/uml_home
+pass_quaggadir="/root/pogo/configurations/bgp/router3"
+eth3 = 2,10.11.3.3/24
+eth123 = 5,10.11.123.3/24
+eth35 = 8,10.11.35.3/24
+
+[router4]
+role = router
+home=/root/uml_home
+pass_quaggadir="/root/pogo/configurations/bgp/router4"
+eth4 = 3,10.11.4.4/24
+eth45 = 7,10.11.45.4/24
+eth14 = 6,10.11.14.4/24
+
+[router5]
+role = router
+home=/root/uml_home
+pass_quaggadir="/root/pogo/configurations/bgp/router5"
+eth5 = 4,10.11.5.5/24
+eth45 = 7,10.11.45.5/24
+eth35 = 8,10.11.35.5/24
+</code>
+
+Create and start the configuration:
+<code>
+root@Guest-02:~/pogo# python pogo.py create configurations/bgp/bgp.cfg 
+INFO: Creating ogo-ovs0 switch
+INFO: Creating ogo-ovs1 switch
+INFO: Creating ogo-ovs2 switch
+INFO: Creating ogo-ovs3 switch
+INFO: Creating ogo-ovs4 switch
+INFO: Creating ogo-ovs5 switch
+INFO: Creating ogo-ovs6 switch
+INFO: Creating ogo-ovs7 switch
+INFO: Creating ogo-ovs8 switch
+INFO: Creating ogo-ovs9 switch
+INFO: Creating host router1. This will take some time.
+INFO: Creating host router2. This will take some time.
+INFO: Creating host router3. This will take some time.
+INFO: Creating host router4. This will take some time.
+INFO: Creating host router5. This will take some time.
+
+root@Guest-02:~/pogo# python pogo.py start configurations/bgp/bgp.cfg 
+INFO: Starting sniffer on ogo-ovs0 switch
+INFO: Starting sniffer on ogo-ovs1 switch
+INFO: Starting sniffer on ogo-ovs2 switch
+INFO: Starting sniffer on ogo-ovs3 switch
+INFO: Starting sniffer on ogo-ovs4 switch
+INFO: Starting sniffer on ogo-ovs5 switch
+INFO: Starting sniffer on ogo-ovs6 switch
+INFO: Starting sniffer on ogo-ovs7 switch
+INFO: Starting sniffer on ogo-ovs8 switch
+INFO: Starting sniffer on ogo-ovs9 switch
+INFO: Starting host router1. 
+INFO: Starting host router2. 
+INFO: Starting host router3. 
+INFO: Starting host router4. 
+INFO: Starting host router5. 
+There are screens on:
+	3939.router5	(12/05/17 13:20:49)	(Detached)
+	3284.router4	(12/05/17 13:20:44)	(Detached)
+	2931.router3	(12/05/17 13:20:41)	(Detached)
+	2516.router2	(12/05/17 13:20:36)	(Detached)
+	2157.router1	(12/05/17 13:20:33)	(Detached)
+5 Sockets in /run/screen/S-root.
+</code>
+
+<WRAP center round tip 60%> Task 3. Connect the eth1 of the DomU VM to the correct openvSwitch instance using ovs-vsctl add-port ogo-ovs{X} eth1, where X is the number of the hub for the 172.16.0.0/24 peering network connected to router2 in the bgp.cfg file (9 by default).</WRAP>
+
+** Answer: **
+
+<code>
+root@Guest-02:~/pogo# ovs-vsctl add-port ogo-ovs9 eth1
+</code>
+
+<WRAP center round tip 60%> Task 4. Once that is done, you can log into router2. You should now have an eth0 interface that connects to the OS3 IX. Make sure that all your bridges and interfaces are up. Check if you can ping a machine in the OS3 IX LAN: ping 172.16.0.42</WRAP>
+
+** Answer: **
+
+In my case it's eth2 ( since I name it like this in the configuration file eth{L#} ):
+
+<code>
+root@router2:~# ifconfig
+eth2      Link encap:Ethernet  HWaddr 00:16:3e:1b:94:35  
+          inet addr:172.16.0.11  Bcast:172.16.0.255  Mask:255.255.255.0
+          inet6 addr: fe80::216:3eff:fe1b:9435/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:829 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:11 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:55796 (55.7 KB)  TX bytes:914 (914.0 B)
+
+eth123    Link encap:Ethernet  HWaddr 00:16:3e:fc:e7:00  
+          inet addr:10.11.123.2  Bcast:10.11.123.255  Mask:255.255.255.0
+          inet6 addr: fe80::216:3eff:fefc:e700/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:26 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:8 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:2246 (2.2 KB)  TX bytes:776 (776.0 B)
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:8 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:8 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:536 (536.0 B)  TX bytes:536 (536.0 B)
+
+
+root@router2:~# ping 172.16.0.42
+PING 172.16.0.42 (172.16.0.42) 56(84) bytes of data.
+64 bytes from 172.16.0.42: icmp_seq=1 ttl=64 time=1.23 ms
+64 bytes from 172.16.0.42: icmp_seq=2 ttl=64 time=0.640 ms
+64 bytes from 172.16.0.42: icmp_seq=3 ttl=64 time=0.515 ms
+^C
+--- 172.16.0.42 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.515/0.796/1.234/0.314 ms
+
+</code>
+
+
+
+====== Peering and Transit ======
+
+
+<WRAP center round tip 60%> Task 5. Set up BGP on router2 using your assigned AS number. This will be your border router.</WRAP>
+
+** Answer: **
+
+<code>
+router2# conf t
+router2(config)# router bgp 64611
+router2(config-router)# bgp router-id 172.16.0.11
+router2(config-router)# network 10.11.0.0/16
+</code>
+
+<WRAP center round tip 60%> Task 6. Use your border router to peer with two of your colleagues. Test if the connectivity between the networks is as you expected, and document your findings. What does the network in your group look like, and what are the relations? Hint: Use ”neighbor a.b.c.d next-hop-self” or BGP may take a short-cut over the shared LAN later</WRAP>
+
+** Answer: **
+
+<WRAP center round alert 60%>** Before I proceed in this question I already fixed the ospf IPs in the ospfd.cfg file for each router.** </WRAP> 
+
+I will be peer with LENNART and PETER:
+
+<code>
+router2# conf t
+router2(config)# router bgp 64611
+router2(config-router)# bgp router-id 172.16.0.11
+router2(config-router)# network 10.11.0.0/16
+router2(config-router)# neighbor LENNART peer-group 
+router2(config-router)# neighbor LENNART remote-as 64617
+router2(config-router)# neighbor PETER peer-group 
+router2(config-router)# neighbor PETER remote-as 64626
+router2(config-router)# neighbor 172.16.0.17 peer-group LENNART
+router2(config-router)# neighbor 172.16.0.26 peer-group PETER
+router2(config-router)# redistribute connected
+
+
+router2(config)# do show ip bgp summary 
+BGP router identifier 172.16.0.11, local AS number 64611
+RIB entries 51, using 5712 bytes of memory
+Peers 2, using 9136 bytes of memory
+Peer groups 2, using 64 bytes of memory
+
+Neighbor        V         AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/P
+fxRcd
+172.16.0.17     4 64617      22      25        0    0    0 00:13:04       18
+172.16.0.26     4 64626      23      26        0    0    0 00:11:14       18
+
+Total number of neighbors 2
+</code>
+
+We also need to enable router bgp disribution on router 2 ( ospf )
+<code>
+router2(config-router)# redistribute bgp
+</code>
+
+<code>
+router2# sh ip route
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, P - PIM, A - Babel,
+       > - selected route, * - FIB route
+
+O>* 10.11.1.0/24 [110/20] via 10.11.123.1, eth123, 00:28:27
+O>* 10.11.3.0/24 [110/20] via 10.11.123.3, eth123, 00:28:24
+O>* 10.11.4.0/24 [110/30] via 10.11.123.1, eth123, 00:28:23
+O>* 10.11.5.0/24 [110/30] via 10.11.123.3, eth123, 00:28:14
+O>* 10.11.14.0/24 [110/20] via 10.11.123.1, eth123, 00:28:27
+O>* 10.11.35.0/24 [110/20] via 10.11.123.3, eth123, 00:28:24
+O>* 10.11.45.0/24 [110/30] via 10.11.123.1, eth123, 00:28:14
+  *                        via 10.11.123.3, eth123, 00:28:14
+O   10.11.123.0/24 [110/10] is directly connected, eth123, 00:29:17
+C>* 10.11.123.0/24 is directly connected, eth123
+B>* 10.17.0.0/16 [20/0] via 172.16.0.17, eth2, 00:09:45
+B>* 10.17.1.0/24 [20/20] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.3.0/24 [20/20] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.4.0/24 [20/30] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.5.0/24 [20/30] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.14.0/24 [20/20] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.35.0/24 [20/20] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.45.0/24 [20/30] via 172.16.0.17, eth2, 00:05:45
+B>* 10.17.123.0/24 [20/0] via 172.16.0.17, eth2, 00:09:45
+B>* 10.26.1.0/24 [20/20] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.3.0/24 [20/20] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.4.0/24 [20/30] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.5.0/24 [20/30] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.14.0/24 [20/20] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.35.0/24 [20/20] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.45.0/24 [20/30] via 172.16.0.26, eth2, 00:05:25
+B>* 10.26.123.0/24 [20/0] via 172.16.0.26, eth2, 00:07:25
+C>* 127.0.0.0/8 is directly connected, lo
+C>* 172.16.0.0/24 is directly connected, eth2
+</code>
+
+Test:
+
+Ping Lennart router3 from my router3:
+<code>
+root@router3:~# ping 10.17.35.3
+PING 10.17.35.3 (10.17.35.3) 56(84) bytes of data.
+64 bytes from 10.17.35.3: icmp_seq=1 ttl=62 time=1.49 ms
+64 bytes from 10.17.35.3: icmp_seq=2 ttl=62 time=1.01 ms
+64 bytes from 10.17.35.3: icmp_seq=3 ttl=62 time=0.923 ms
+^C
+--- 10.17.35.3 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 0.923/1.144/1.492/0.249 ms
+</code>
+
+Ping Peter router5 from my router3:
+<code>
+root@router3:~# ping 10.26.5.5
+PING 10.26.5.5 (10.26.5.5) 56(84) bytes of data.
+64 bytes from 10.26.5.5: icmp_seq=1 ttl=61 time=2.47 ms
+64 bytes from 10.26.5.5: icmp_seq=2 ttl=61 time=0.804 ms
+64 bytes from 10.26.5.5: icmp_seq=3 ttl=61 time=0.810 ms
+64 bytes from 10.26.5.5: icmp_seq=4 ttl=61 time=0.810 ms
+64 bytes from 10.26.5.5: icmp_seq=5 ttl=61 time=0.802 ms
+^C
+--- 10.26.5.5 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4061ms
+rtt min/avg/max/mdev = 0.802/1.139/2.473/0.667 ms
+</code>
+
+<WRAP center round tip 60%> Task 7. Configure your border router such that even though you have a direct peering relation with one of your colleagues, all the outbound traffic goes via your other colleague. Do the same for inbound traffic. Are you in full control of the routing? Explain.</WRAP>
+
+** Answer: **
+
+Outbound:
+<code>
+router2(config-router)# neighbor LENNART weight 100
+</code>
+
+Apply it:
+<code>
+router2(config)# router bgp 64611
+router2(config-router)# neighbor LENNART route-map LENNART-BGP out
+</code>
+
+Inbound:
+<code>
+router2(config)# route-map LENNART-BGP permit  
+router2(config)# route-map LENNART-BGP permit 10 
+router2(config-route-map)# set metric 100
+</code>
+
+
+So now if I use trace route to Peter router 3, the traffic will go over Lennart (172.16.0.17) then it will go to Peter (172.16.0.26):
+
+<code>
+router2(config-router)# do traceroute ip 10.26.5.5
+traceroute to 10.26.5.5 (10.26.5.5), 30 hops max, 60 byte packets
+ 1  172.16.0.17 (172.16.0.17)  3.009 ms  2.359 ms  2.275 ms
+ 2  172.16.0.26 (172.16.0.26)  2.425 ms  2.368 ms  2.301 ms
+ 3  10.26.123.3 (10.26.123.3)  2.809 ms  3.259 ms  2.626 ms
+ 4  10.26.5.5 (10.26.5.5)  3.157 ms  3.051 ms  2.975 ms
+</code>
+
+Proof it:
+
+<code>
+router2# show ip route bgp 
+Codes: K - kernel route, C - connected, S - static, R - RIP,
+       O - OSPF, I - IS-IS, B - BGP, P - PIM, A - Babel,
+       > - selected route, * - FIB route
+
+B>* 10.17.0.0/16 [20/0] via 172.16.0.17, eth2, 01:10:31
+B>* 10.17.1.0/24 [20/20] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.3.0/24 [20/20] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.4.0/24 [20/30] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.5.0/24 [20/30] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.14.0/24 [20/20] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.35.0/24 [20/20] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.45.0/24 [20/30] via 172.16.0.17, eth2, 01:06:31
+B>* 10.17.123.0/24 [20/0] via 172.16.0.17, eth2, 01:10:31
+B>* 10.26.1.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.3.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.4.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.5.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.14.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.35.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.45.0/24 [20/0] via 172.16.0.17, eth2, 00:03:30
+B>* 10.26.123.0/24 [20/0] via 172.16.0.17, eth2, 00:03:00
+</code>
+
+Are you in full control of the routing? Explain?
+
+No, I'm not in control because I use AS_PATH prepending or a MED. The stuff that I advertised are not significant anymore because the other router can always choose to implement a different routing policy. which means that I'm not in full control.
+
+<WRAP center round alert 60%> **Feedback received: Show that it works for inbound.** </WRAP>
+
+<WRAP center round box 60%> **I finished this assignment in the same day and I destroyed the VM and the xen hypervisor ( after that I noticed that I didn't proof the inbound traffic)** </WRAP>
+
+I will use trace rout from one of my peers to my network.
+
+<code>
+# traceroute 10.11.3.3
+traceroute to 10.11.3.3 (10.11.3.3), 30 hops max, 60 byte packets
+ 1  172.16.0.35 (172.16.0.35)  0.864 ms  0.848 ms  0.832 ms
+ 2  172.16.0.21 (172.16.0.21)  1.133 ms  0.964 ms  1.099 ms
+ 3  10.11.3.3 (10.11.3.3)  2.292 ms * *
+</code>
+
+As we see my router which isn't the best first hop, so the peers used another router instead of mine.
+
+<WRAP center round tip 60%>Task 8. Document the current BGP routing table. Now choose a colleague from another group and setup peering with him. Write the peering setup on the board so that the rest of the class knows who is peering with whom. Describe the peering relations after you’ve added the new peer. What new routes did you get? How did the AS Path lengths change?</WRAP>
+
+** Answer: **
+
+Current BGP routing table:
+
+<code>
+router2# show ip bgp 
+BGP table version is 0, local router ID is 172.16.0.11
+Status codes: s suppressed, d damped, h history, * valid, > best, = multipath,
+              i internal, r RIB-failure, S Stale, R Removed
+Origin codes: i - IGP, e - EGP, ? - incomplete
+
+   Network          Next Hop            Metric LocPrf Weight Path
+*> 10.11.0.0/16     0.0.0.0                  0         32768 i
+*> 10.11.1.0/24     10.11.123.1             20         32768 ?
+*> 10.11.3.0/24     10.11.123.3             20         32768 ?
+*> 10.11.4.0/24     10.11.123.1             30         32768 ?
+*> 10.11.5.0/24     10.11.123.3             30         32768 ?
+*> 10.11.14.0/24    10.11.123.1             20         32768 ?
+*> 10.11.35.0/24    10.11.123.3             20         32768 ?
+*> 10.11.45.0/24    10.11.123.1             30         32768 ?
+*> 10.11.123.0/24   0.0.0.0                  0         32768 ?
+*  10.17.0.0/16     172.16.0.17                            0 64626 64617 i
+*>                  172.16.0.17              0             0 64617 i
+*  10.17.1.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.3.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.4.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.5.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.14.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.35.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.45.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.123.0/24   172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17              0             0 64617 ?
+*> 10.26.1.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.3.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.4.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.5.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.14.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.35.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.45.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.123.0/24   172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26              0             0 64626 ?
+*  172.16.0.0/24    172.16.0.26              0             0 64626 ?
+*                   172.16.0.17              0             0 64617 ?
+*>                  0.0.0.0                  0         32768 ?
+
+Total number of prefixes 27
+</code>
+
+I will set the peering for this question with Isaac "23".
+
+<code>
+router2(config)# router bgp 64611
+router2(config-router)# neighbor ISAAC peer-group
+router2(config-router)# neighbor ISAAC remote-as 64623
+router2(config-router)# neighbor 172.16.0.23 peer-group ISAAC
+</code>
+
+Show routing table now:
+
+<code>
+router2(config-router)# do sh ip bgp
+BGP table version is 0, local router ID is 172.16.0.11
+Status codes: s suppressed, d damped, h history, * valid, > best, = multipath,
+              i internal, r RIB-failure, S Stale, R Removed
+Origin codes: i - IGP, e - EGP, ? - incomplete
+
+   Network          Next Hop            Metric LocPrf Weight Path
+*> 8.8.0.0/16       172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 10.11.0.0/16     0.0.0.0                  0         32768 i
+*> 10.11.1.0/24     10.11.123.1             20         32768 ?
+*> 10.11.3.0/24     10.11.123.3             20         32768 ?
+*> 10.11.4.0/24     10.11.123.1             30         32768 ?
+*> 10.11.5.0/24     10.11.123.3             30         32768 ?
+*> 10.11.14.0/24    10.11.123.1             20         32768 ?
+*> 10.11.35.0/24    10.11.123.3             20         32768 ?
+*> 10.11.45.0/24    10.11.123.1             30         32768 ?
+*> 10.11.123.0/24   0.0.0.0                  0         32768 ?
+*> 10.12.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*> 10.13.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4642 64612 64613 i
+*> 10.15.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4642 64615 i
+*> 10.16.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4616 i
+*  10.17.0.0/16     172.16.0.17                            0 64626 64617 i
+*>                  172.16.0.17              0             0 64617 i
+*  10.17.1.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.3.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.4.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.5.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.14.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.35.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.45.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.123.0/24   172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17              0             0 64617 ?
+*> 10.21.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4642 64615 64621 i
+*> 10.23.0.0/16     172.16.0.23              0             0 64623 i
+*> 10.26.1.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.3.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.4.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.5.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.14.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.35.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.45.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.123.0/24   172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26              0             0 64626 ?
+*> 10.27.0.0/16     172.16.0.23                            0 64623 64640 64627 i
+*> 10.28.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4628 i
+*> 10.30.0.0/16     172.16.0.23                            0 64623 64640 64630 i
+*> 10.35.0.0/16     172.16.0.23                            0 64623 64635 i
+*> 10.36.0.0/16     172.16.0.23                            0 64623 64635 64636 i
+*> 10.40.0.0/16     172.16.0.23                            0 64623 64640 i
+*> 10.40.1.0/24     172.16.0.23                            0 64623 64640 ?
+*> 10.40.3.0/24     172.16.0.23                            0 64623 64640 ?
+*> 10.40.4.0/24     172.16.0.23                            0 64623 64640 ?
+*> 10.40.5.0/24     172.16.0.23                            0 64623 64640 ?
+*> 10.40.14.0/24    172.16.0.23                            0 64623 64640 ?
+*> 10.40.35.0/24    172.16.0.23                            0 64623 64640 ?
+*> 10.40.45.0/24    172.16.0.23                            0 64623 64640 ?
+*> 10.42.0.0/16     172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 145.100.0.0      172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*  172.16.0.0/24    172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*                   172.16.0.26              0             0 64626 ?
+*                   172.16.0.17              0             0 64617 ?
+*>                  0.0.0.0                  0         32768 ?
+
+Total number of prefixes 49
+</code>
+
+What new routes did you get? How did the AS Path lengths change?
+
+As we see above now I have a lot of new routes which I got from Lennart and Isaac (.40, .42, .36, .35, .30, .28, .27, and etc.. ).  The AS peth lengths change depends on the peers for example we can notice a certain prefix need 6 AS to reach the destination. However, on the peers that I configured we notice a fast path till reach the destination.
+
+
+<WRAP center round tip 60%>Task 9. Setup peering with 172.16.0.42/AS64642. This BGP peer has been allocated the IP block 10.42.0.0/16 but it also advertises other ranges. Configure your BGP router such that it accepts only valid routes from this peer.</WRAP>
+
+** Answer: **
+
+Peering setup:
+
+<code>
+router2(config-router)# neighbor 172.16.0.42 remote-as 64642
+</code>
+
+Routing table now:
+
+<code>
+router2(config-router)# do sh ip bgp
+BGP table version is 0, local router ID is 172.16.0.11
+Status codes: s suppressed, d damped, h history, * valid, > best, = multipath,
+              i internal, r RIB-failure, S Stale, R Removed
+Origin codes: i - IGP, e - EGP, ? - incomplete
+
+   Network          Next Hop            Metric LocPrf Weight Path
+*> 8.8.0.0/16       172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 10.11.0.0/16     0.0.0.0                  0         32768 i
+*> 10.11.1.0/24     10.11.123.1             20         32768 ?
+*> 10.11.3.0/24     10.11.123.3             20         32768 ?
+*> 10.11.4.0/24     10.11.123.1             30         32768 ?
+*> 10.11.5.0/24     10.11.123.3             30         32768 ?
+*> 10.11.14.0/24    10.11.123.1             20         32768 ?
+*> 10.11.35.0/24    10.11.123.3             20         32768 ?
+*> 10.11.45.0/24    10.11.123.1             30         32768 ?
+*> 10.11.123.0/24   0.0.0.0                  0         32768 ?
+*> 10.12.0.0/16     172.16.0.12                            0 64642 64612 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*> 10.13.0.0/16     172.16.0.13                            0 64642 64612 64613 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 64613 i
+*> 10.15.0.0/16     172.16.0.15                            0 64642 64615 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64615 i
+*> 10.16.0.0/16     172.16.0.16                            0 64642 64636 64616 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4616 i
+*  10.17.0.0/16     172.16.0.17                            0 64626 64617 i
+*>                  172.16.0.17              0             0 64617 i
+*  10.17.1.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.3.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.4.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.5.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.14.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.35.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.45.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.123.0/24   172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17              0             0 64617 ?
+*> 10.21.0.0/16     172.16.0.15                            0 64642 64615 64621 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64615 64621 i
+*  10.23.0.0/16     172.16.0.23                            0 64642 64623 i
+*>                  172.16.0.23              0             0 64623 i
+*> 10.26.1.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.3.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.4.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.5.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.14.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.35.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.45.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.123.0/24   172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26              0             0 64626 ?
+*  10.27.0.0/16     172.16.0.23                            0 64642 64623 64640 6
+4627 i
+*>                  172.16.0.23                            0 64623 64640 64627 i
+*> 10.28.0.0/16     172.16.0.28                            0 64642 64636 64628 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4628 i
+*  10.30.0.0/16     172.16.0.23                            0 64642 64623 64640 6
+4630 i
+*>                  172.16.0.23                            0 64623 64640 64630 i
+*  10.35.0.0/16     172.16.0.35                            0 64642 64636 64635 i
+*>                  172.16.0.23                            0 64623 64635 i
+*> 10.36.0.0/16     172.16.0.36                            0 64642 64636 i
+*                   172.16.0.23                            0 64623 64635 64636 i
+*  10.40.0.0/16     172.16.0.23                            0 64642 64623 64640 i
+*>                  172.16.0.23                            0 64623 64640 i
+*  10.40.1.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.3.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.4.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.5.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.14.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.35.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.45.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*> 10.42.0.0/16     172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 145.100.0.0      172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*  172.16.0.0/24    172.16.0.12                            0 64642 64612 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*                   172.16.0.26              0             0 64626 ?
+*                   172.16.0.17              0             0 64617 ?
+*>                  0.0.0.0                  0         32768 ?
+
+Total number of prefixes 49
+</code>
+
+Create a filter:
+
+<code>
+router2(config)# ip prefix-list TASK9 permit 10.42.0.0/16
+router2(config)# router bgp 64611
+router2(config-router)# neighbor 172.16.0.42 prefix-list TASK9 in
+</code>
+
+check table now:
+
+<code>
+router2(config-router)# do sh ip bgp
+BGP table version is 0, local router ID is 172.16.0.11
+Status codes: s suppressed, d damped, h history, * valid, > best, = multipath,
+              i internal, r RIB-failure, S Stale, R Removed
+Origin codes: i - IGP, e - EGP, ? - incomplete
+
+   Network          Next Hop            Metric LocPrf Weight Path
+*> 8.8.0.0/16       172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 10.11.0.0/16     0.0.0.0                  0         32768 i
+*> 10.11.1.0/24     10.11.123.1             20         32768 ?
+*> 10.11.3.0/24     10.11.123.3             20         32768 ?
+*> 10.11.4.0/24     10.11.123.1             30         32768 ?
+*> 10.11.5.0/24     10.11.123.3             30         32768 ?
+*> 10.11.14.0/24    10.11.123.1             20         32768 ?
+*> 10.11.35.0/24    10.11.123.3             20         32768 ?
+*> 10.11.45.0/24    10.11.123.1             30         32768 ?
+*> 10.11.123.0/24   0.0.0.0                  0         32768 ?
+*> 10.12.0.0/16     172.16.0.12                            0 64642 64612 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*> 10.13.0.0/16     172.16.0.13                            0 64642 64612 64613 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 64613 i
+*> 10.15.0.0/16     172.16.0.15                            0 64642 64615 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64615 i
+*> 10.16.0.0/16     172.16.0.16                            0 64642 64636 64616 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4616 i
+*  10.17.0.0/16     172.16.0.17                            0 64626 64617 i
+*>                  172.16.0.17              0             0 64617 i
+*  10.17.1.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.3.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.4.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.5.0/24     172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.14.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.35.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             20             0 64617 ?
+*  10.17.45.0/24    172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17             30             0 64617 ?
+*  10.17.123.0/24   172.16.0.17                            0 64626 64617 ?
+*>                  172.16.0.17              0             0 64617 ?
+*> 10.21.0.0/16     172.16.0.15                            0 64642 64615 64621 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64615 64621 i
+*  10.23.0.0/16     172.16.0.23                            0 64642 64623 i
+*>                  172.16.0.23              0             0 64623 i
+*> 10.26.1.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.3.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.4.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.5.0/24     172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.14.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.35.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             20             0 64626 ?
+*> 10.26.45.0/24    172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26             30             0 64626 ?
+*> 10.26.123.0/24   172.16.0.17                          100 64617 64626 ?
+*                   172.16.0.26              0             0 64626 ?
+*  10.27.0.0/16     172.16.0.23                            0 64642 64623 64640 6
+4627 i
+*>                  172.16.0.23                            0 64623 64640 64627 i
+*> 10.28.0.0/16     172.16.0.28                            0 64642 64636 64628 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4628 i
+*  10.30.0.0/16     172.16.0.23                            0 64642 64623 64640 6
+4630 i
+*>                  172.16.0.23                            0 64623 64640 64630 i
+*  10.35.0.0/16     172.16.0.35                            0 64642 64636 64635 i
+*>                  172.16.0.23                            0 64623 64635 i
+*> 10.36.0.0/16     172.16.0.36                            0 64642 64636 i
+*                   172.16.0.23                            0 64623 64635 64636 i
+*  10.40.0.0/16     172.16.0.23                            0 64642 64623 64640 i
+*>                  172.16.0.23                            0 64623 64640 i
+*  10.40.1.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.3.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.4.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.5.0/24     172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.14.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.35.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*  10.40.45.0/24    172.16.0.23                            0 64642 64623 64640 ?
+*>                  172.16.0.23                            0 64623 64640 ?
+*> 10.42.0.0/16     172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*> 145.100.0.0      172.16.0.42              0             0 64642 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 i
+*  172.16.0.0/24    172.16.0.12                            0 64642 64612 i
+*                   172.16.0.23                            0 64623 64635 64636 6
+4642 64612 i
+*                   172.16.0.26              0             0 64626 ?
+*                   172.16.0.17              0             0 64617 ?
+*>                  0.0.0.0                  0         32768 ?
+
+Total number of prefixes 49
+</code>
+
+It seems that the filter denies any prefixes from .42 that are not 10.42.0.0/16 which is the only prefix that is valid. We can still see the invalid prefixes but they are advertised to me. That means that the prefix filter works. 
+
+<WRAP center round tip 60%> Task 10. Explain what the purpose of AS112 is.</WRAP>
+
+** Answer: **
+
+"Many sites connected to the Internet make use of IPv4 addresses that are not globally unique.  Examples are the addresses designated in [RFC1918] for private use within individual sites. Devices in such environments may occasionally originate Domain Name System (DNS) [RFC1034] queries (so-called "reverse lookups") corresponding to those private-use addresses.  Since the addresses concerned have only local significance, it is good practice for site administrators to ensure that such queries are answered locally [RFC6303]. However, it is not uncommon for such queries to follow the normal delegation path in the public DNS instead of being answered within the site.
+The AS112 project encompasses a loosely coordinated collection of independently operated nameservers.  Each nameserver functions as a single node in an AS112 anycast cloud [RFC4786] and is configured to answer authoritatively for a particular set of nominated zones. The AS112 project is named after the Autonomous System Number (ASN) that was assigned to it."
+
+
+// Source: //
+
+1- https://tools.ietf.org/html/rfc6304
+
+<WRAP center round tip 60%> Task 11. Perform a traceroute to 145.100.101.1 using the ”Traceroute IPv4” tool on https://www.transip.nl/netwerk/ and note the ASs that are traversed. Now trace 145.100.104.1. Why does this trace take a different route, although both addresses are part of OS3’s 145.100.96.0/20 range?</WRAP>
+
+** Answer: **
+
+
+  * Tracerout to 145.100.101.1:
+<code>
+traceroute to 145.100.101.1 (145.100.101.1), 30 hops max, 48 byte packets 
+1 v210.router1.dcg.transip.net (149.210.210.220) 0.203 ms 
+2 r1-a0.e1.ams7.transip.net (157.97. 168.1) 0.327 ms 
+3 e1-a7.e1.ams8.transip.net (157.97.168.3) 0.439 ms 
+4 transip.nikhef.openpeering.nl (82.150.159.225) 0.482 ms 
+5 telecity-ixr.openpeering.nl (217.170.0.244 ) 0.961 ms 
+6 storm.as1101.net (80.249.210.65) 1.493 ms 
+7 styx.os3.nl (145.100.101.1) 1.231 ms
+</code>
+
+  * Tracerout to 145.100.104.1:
+<code>
+traceroute to 145.100.104.1 (145.100.104.1), 30 hops max, 48 byte packets 
+1 v210.router1.dcg.transip.net (149.210.210.220) 0.216 ms 
+2 r1-a0.e1.ams0.transip.net (157.97. 168.9) 0.388 ms 
+3 ae2.jnr02.Asd001A.surf.net (80.249.208.50) 0.666 ms 
+4 ae0.500.jnr01.asd002a.surf.net (145.145.176.1) 4.463 ms
+5 *
+6 *
+7 snb router.customer .surf.net (145.145.19.186) 1.082 ms! N
+</code>
+
+<WRAP center round box 60%> **Credits to BART to help me in this.**</WRAP>
+
+The possible reason for that these two prefixes (145.100.104.1 and 145.100.101.1) belong to two different autonomous system.
+
+  * 145.100.101.1 belongs to AS1146 ( which is OS3 AS).
+  * 145.100.104.1 belongs to AS1103 ( which is Surfnet AS).
+
+Since Surfnet AS doesn't import anything from OS3 AS, another AS oath is used for traffic to AS1146. That's why we see here two different route path.
+
+
+<WRAP center round alert 60%> ** Feedback received: Explain how this works given the IPs are from the same /20** </WRAP>
+
+The reason behind the difference is that the first address (145.100.101.1) came from more specific network prefix from single router. However, the second address (145.100.104.1) is part of large aggregate. We can notice that the AS path of (145.100.101.1) lead to OS3 AS path ( the more specific network prefix) while (145.100.104.1) routed from SURFnet AS path.
+
+// Source: //
+
+1- https://bgp.he.net/ 
