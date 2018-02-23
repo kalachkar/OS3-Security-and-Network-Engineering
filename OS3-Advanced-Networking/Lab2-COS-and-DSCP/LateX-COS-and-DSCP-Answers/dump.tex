@@ -1,0 +1,149 @@
+gr3switch#show running-config 
+Building configuration...
+
+Current configuration : 2438 bytes
+!
+version 12.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname gr3switch
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$pal/$V2SBsPMv8dK7I/swRQ4ru.
+!
+username andrey password 0 cisco
+username kotaiba password 0 cisco
+username rick password 0 cisco
+username henrilarose password 0 cisco
+!
+!
+no aaa new-model
+switch 1 provision ws-c3750g-24ps
+system mtu routing 1500
+ip domain-name gr3.com
+!
+!
+!
+mls qos
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+!
+class-map match-any TEST
+class-map match-all type
+!
+!
+policy-map pm
+!         
+!         
+!         
+!         
+interface Loopback1
+ no ip address
+!
+interface GigabitEthernet1/0/1
+!
+interface GigabitEthernet1/0/2
+!
+interface GigabitEthernet1/0/3
+!
+interface GigabitEthernet1/0/4
+!
+interface GigabitEthernet1/0/5
+!
+interface GigabitEthernet1/0/6
+!
+interface GigabitEthernet1/0/7
+!
+interface GigabitEthernet1/0/8
+!
+interface GigabitEthernet1/0/9
+!
+interface GigabitEthernet1/0/10
+!
+interface GigabitEthernet1/0/11
+!
+interface GigabitEthernet1/0/12
+!
+interface GigabitEthernet1/0/13
+!
+interface GigabitEthernet1/0/14
+!
+interface GigabitEthernet1/0/15
+!
+interface GigabitEthernet1/0/16
+!
+interface GigabitEthernet1/0/17
+ mls qos trust dscp
+!
+interface GigabitEthernet1/0/18
+!
+interface GigabitEthernet1/0/19
+ mls qos trust dscp
+!
+interface GigabitEthernet1/0/20
+!
+interface GigabitEthernet1/0/21
+ mls qos trust dscp
+!
+interface GigabitEthernet1/0/22
+!
+interface GigabitEthernet1/0/23
+ mls qos trust dscp
+!
+interface GigabitEthernet1/0/24
+!
+interface GigabitEthernet1/0/25
+!
+interface GigabitEthernet1/0/26
+!
+interface GigabitEthernet1/0/27
+!
+interface GigabitEthernet1/0/28
+!
+interface Vlan1
+ ip address 192.168.0.253 255.255.255.0
+!
+ip classless
+no ip http server
+no ip http secure-server
+!         
+!
+logging trap debugging
+logging 192.168.0.127
+!
+snmp-server group an-cos v3 priv notify *tv.FFFFFFFF.FFFFFFFF.FFFFFFFF.FFFFFFFF0F 
+snmp-server community an-cos RO
+snmp-server community public RO
+snmp-server community private RW
+snmp-server location os3
+snmp-server contact henrilarose
+snmp-server enable traps syslog
+snmp-server host 192.168.0.127 an-cos  snmp
+snmp-server host 192.168.0.127 henrilarose  syslog
+!
+!
+line con 0
+ logging synchronous
+ login local
+line vty 0 4
+ password 7cisco
+ login local
+ transport input ssh
+line vty 5 15
+ login
+ transport input none
+!
+end

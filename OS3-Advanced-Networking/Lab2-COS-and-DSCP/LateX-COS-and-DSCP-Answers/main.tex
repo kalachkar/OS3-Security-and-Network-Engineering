@@ -212,13 +212,18 @@ In this question we have used \textit{iperf} to transfer data between 192.168.0.
 \end{figure}
 
 
-However, when we change the size of the MTU on interface \texttt{eno2}, the throughput increases.
-%Todo: Do the experiment on higher MTU
+When we change the size of the MTU on interface \texttt{eno2}, the throughput decreases. This was done by configuring the MTU-size of the interface:
+\begin{verbatim}
+    ifconfig eno2 down
+    ifconfig eno2 mtu 1000 up
+\end{verbatim}
+
+Then running the server and client with the -M option at 1000. Also when we decrease it to 100, the throughput decreases drastically.
 
 \bigskip
 
 \subsection{Q2.2 Define a number of scenarios where the data transfers interfere with each other}
-After some discussion we could define following scenarios:
+After some discussion we could define following affordable scenarios, which simulate different computer network traffic:
 
 \begin{enumerate}
     \item Example from lab one basic scenario could be the one in which multiple nodes and applications are trying to  communicate  with  one  node.
@@ -239,7 +244,7 @@ After some discussion we could define following scenarios:
 \end{enumerate}
 
 \subsubsection{Execution of the first scenario}
-We have set up the first scenario by setting up two \texttt{iperf} listeners (UDP and TCP) on server \texttt{192.168.0.200}, using commands \texttt{iperf -s} for TCP and \texttt{iperf -s -p 5000 -u} for UDP. The clients then connected to the server's listeners using commands \texttt{iperf -c 192.168.0.200} and \texttt{iperf -c 192.168.0.200 -p 5000 -u -b 1200M}. The results of this test are shown in \textit{Figure \ref{fig:scenario1_result1}} and \textit{Figure \ref{fig:scenario1_result2}}.
+We have set up the first scenario by setting up two \texttt{iperf} listeners (UDP and TCP) on server \texttt{192.168.0.200}, using commands \texttt{iperf -s} for TCP and \texttt{iperf -s -p 5000 -u} for UDP. The clients then connected to the server's listeners using commands \texttt{iperf -c 192.168.0.200} and \texttt{iperf -c 192.168.0.200 -p 5000 -u -b 1200M}. The results of this test for the clients are shown in \textit{Figure \ref{fig:throughput_udp_test_1}, \ref{fig:throughput_tcp_test_1}, \ref{fig:throughput_udp_test_2} and \ref{fig:throughput_tcp_test_2}}. The results of this test for the server are shown in \textit{Figure \ref{fig:throughput_udp_result} and \ref{fig:throughput_tcp_result}}.
 
 \begin{figure}[H]
 \includegraphics[width=14cm]{figures/q2-2-1-udp-1.png}
@@ -294,15 +299,10 @@ We have set up the first scenario by setting up two \texttt{iperf} listeners (UD
 \label{fig:throughput_tcp_result}
 \end{figure}
 
-
+From the results we can derive that there are different results for UDP and TCP traffic. According to \textit{Figure \ref{fig:throughput_udp_result} and \ref{fig:throughput_tcp_result}} the UDP traffic claims more bandwidth than the TCP traffic, resulting in the TCP traffic being pushed away. This can be (partially) solved using prioritisation of traffic.
 
 \subsubsection{Execution of the second scenario}
-In the second scenario we have set up an \texttt{iperf} server on \texttt{192.168.0.200}. We started a transfer on TCP towards the server in \texttt{iperf} from one client using \texttt{iperf -c 192.168.0.200}. At the same time, another pair of clients start a ping with large packet sizes using command \texttt{ping 192.168.0.200 -i 0.01 -s 65507}. The results are listed in \textit{Figure..}.
-
-
-
-
-
+In the second scenario we have set up an \texttt{iperf} server on \texttt{192.168.0.200}. We started a transfer on TCP towards the server in \texttt{iperf} from one client using \texttt{iperf -c 192.168.0.200}. At the same time, another pair of clients start a ping with large packet sizes using command \texttt{ping 192.168.0.200 -i 0.01 -s 65507}. The results for the \texttt{iperf} client are shown in \textit{Figure \ref{fig:throughput_scenario_2}}. The results of the ping clients are shown in \textit{Figures \ref{fig:throughput_scenario_2_ping_1} and \ref{fig:throughput_scenario_2_ping_2}}. The results of the \texttt{iperf} server is shown in \textit{Figure \ref{fig:throughput_scenario_2_result}}. 
 
 \begin{figure}[H]
 \includegraphics[width=14cm]{figures/q2-2-2-1.png}
@@ -337,11 +337,11 @@ In the second scenario we have set up an \texttt{iperf} server on \texttt{192.16
 \label{fig:throughput_scenario_2_result}
 \end{figure}
 
-
+In \textit{Figure \ref{fig:throughput_iperf}} we have shown the normal throughput for TCP-traffic between an \texttt{iperf} server and client. Because of the ping request sending large sized packets with a high frequency, approximately 110 Mbits/sec was allocated to the ICMP-traffic.
 
 
 \subsubsection{Execution of the third scenario}
-In the third scenario will include an \texttt{Apache} webserver along with an \texttt{iperf} server running on \texttt{192.168.0.200}. One client will communicate with the server using \texttt{iperf -c 192.168.0.200} and the other two nodes will use a benchmarking tool like apache benchmark (ab) with the following command \texttt{b -n 100000 -c 10 http://192.168.0.200}
+The third scenario will include an \texttt{Apache} webserver along with an \texttt{iperf} server both running on \texttt{192.168.0.200}. One client will communicate with the server using \texttt{iperf -c 192.168.0.200} and other two nodes will use a benchmarking tool like apache benchmark (ab) with the following command \texttt{b -n 100000 -c 10 http://192.168.0.200}. The results of the \texttt{iperf} client are shown in \textit{Figure \ref{fig:throughput_scenario_3}}. The results of the Apache benchmark clients are shown in \textit{Figures \ref{fig:ab_dublin_scenario_3} and \ref{fig:ab_calais_scenario_3}}. The results of the server are shown in \textit{Figure \ref{fig:throughput_scenario_3_result}}.
 
 
 \begin{figure}[H]
@@ -370,8 +370,6 @@ In the third scenario will include an \texttt{Apache} webserver along with an \t
 \end{figure}
 
 
-
-
 \begin{figure}[H]
 \includegraphics[width=14cm]{figures/q-2-2-3-results.png}
 \centering
@@ -380,11 +378,31 @@ In the third scenario will include an \texttt{Apache} webserver along with an \t
 \label{fig:throughput_scenario_3_result}
 \end{figure}
 
+From these results we can derive the Apache Benchmark traffic's bandwidth allocation is much higher than the allocation of traffic to the \texttt{iperf} transfer. Again, this can be regulated by giving HTTP-traffic a lower priority than \texttt{iperf} traffic.
 
 \subsection{Q3 Configuring CoS}
-In order to configure CoS, it has to be enabled on the interfaces of the switch where the servers are connected to.
+In order to configure CoS, it has to be enabled on the interfaces of the switch where the servers are connected to. First CoS has to be enabled globally on the switch by performing the following configuration steps on the switch:
+\begin{verbatim}
+    conf t
+    mls qos
+\end{verbatim}
 
-%Todo: Add description
+We will prioritize two interfaces distributing the interfering traffic (Apache Benchmark) with a lower priority than the other interfaces. This is done by performing the following configuration steps on the switch:
+\begin{verbatim}
+    conf t
+    int G1/0/17
+    mls qos cos 6
+    mls qos trust cos
+    int G1/0/19
+    mls qos cos 6
+    mls qos trust cos
+    int G1/0/21
+    mls qos trust cos
+    int G1/0/23
+    mls qos trust cos
+\end{verbatim}
+
+The impact is shown when we run scenario 3 again in \textit{Figures \ref{fig:throughput_scenario_3}, \ref{fig:ab2_calais_scenario_3} and \ref{fig:ab2_dublin_scenario_3}}.
 
 \begin{figure}[H]
 \includegraphics[width=14cm]{figures/q3-1-1.png}
@@ -400,7 +418,7 @@ In order to configure CoS, it has to be enabled on the interfaces of the switch 
 \includegraphics[width=14cm]{figures/dublin-ab2.png}
 \caption{Cos - Apache Benchmark from Dublin client to Apache server with CoS enabled}
 \centering
-\label{fig:ab2_calais_scenario_3}
+\label{fig:ab2_dublin_scenario_3}
 \end{figure}
 
 
@@ -412,64 +430,252 @@ In order to configure CoS, it has to be enabled on the interfaces of the switch 
 \label{fig:ab2_calais_scenario_3}
 \end{figure}
 
-\subsubsection{Difference between SRR and other}
+Now the TCP-transfer through \texttt{iperf} has much more bandwidth allocated, meaning the prioritisation of the ports appears to work. In order to confirm the results, this test was run twice.
 
-% Just going to put this here.
+\subsubsection{Difference between SRR shape and share}
+Configuration for shape:
 \begin{verbatim}
-    gr3switch(config)#int G1/0/19
-gr3switch(config-if)#no srr-
-gr3switch(config-if)#no srr-queue bandwidth share 15 15 15 15
-gr3switch(config-if)#int G1/0/17                             
-gr3switch(config-if)#no srr-queue bandwidth share 15 15 15 15
-gr3switch(config-if)#int G1/0/23
-gr3switch(config-if)#no srr-queue
-% Incomplete command.
-
-gr3switch(config-if)#no srr-queue bandwidth
-% Incomplete command.
-
-gr3switch(config-if)#no srr-queue bandwidth share
-gr3switch(config-if)#srr-queue bandwidth shape ?
-  <0-65535>  enter bandwidth weight for queue id 1
-
-gr3switch(config-if)#srr-queue bandwidth shape 45000 45000 45000 45000  
-gr3switch(config-if)#int G1/0/19
-gr3switch(config-if)#srr-queue bandwidth shape 9830 9830 9830 9830
-gr3switch(config-if)#int G1/0/17
-gr3switch(config-if)#srr-queue bandwidth shape 9830 9830 9830 9830
-
+    conf t
+    int G1/0/19
+    srr-queue bandwidth shape 9830 9830 9830 9830
+    int G1/0/17
+    srr-queue bandwidth shape 9830 9830 9830 9830
+    int G1/0/23
+    srr-queue bandwidth shape 45000 45000 45000 45000
 \end{verbatim}
+
+Configuration for share:
+\begin{verbatim}
+    conf t
+    int G1/0/19
+    srr-queue bandwidth share 15 15 15 15
+    int G1/0/17
+    srr-queue bandwidth share 15 15 15 15
+    int G1/0/23
+    srr-queue bandwidth share 70 70 70 70
+\end{verbatim}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm]{figures/screenshots_shape.png}
+\caption{Packets per second sent after shape configuration}
+\centering
+\label{fig:shape_result}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=14cm]{figures/screenshots_share.png}
+\caption{Packets per second sent after share configuration}
+\centering
+\label{fig:share_result}
+\end{figure}
+
+Given the fact that the framesize of the \texttt{iperf} traffic (darkest line) varies from 5858 to 40610 bytes and the framesize of the HTTP-traffic (other two lines) vary from 66 to 147 bytes, the results shown in \textit{Figures \ref{fig:shape_result} and \ref{fig:share_result}} are correct. Both images show the packets sent per second, which should, according to the configured share and shape, result in a higher throughput for the \texttt{iperf} traffic. The throughput can be calculated using $Throughput_{traffic} = Packets/s_{traffic} * Frame size$ for every point per traffic type. As the size of the frames for the \texttt{iperf} traffic is much higher, the throughput is also higher which displays the queue share and shape values being applied. 
+
+Comparing both figures (\ref{fig:share_result} and \ref{fig:shape_result}, the difference between sharing and shaping is displayed. With shaping, the throughput is limited to a configured value. With sharing, the traffic gets a guaranteed share of a queue, but is not limited to a value when extra bandwidth is available. We can see this based on the increase in \textit{Figure \ref{fig:share_result}}, when the \texttt{iperf} traffic line decreases. In \textit{Figure \ref{fig:shape_result}} we see the amount of packets sent per second bumping into a limit and then bouncing back. The value does not become higher than the limit.
 
 \subsection{Q4.1 Mark your outgoing packets using iptables}
 One of the characteristics of DSCP is that the classification of the packets can occur at the source (sender of specific traffic). The marking of the packets can be done using iptables, which is simply separating them into classes based on the protocol or ports used.\\
 \\
-Example rule (has to be fixed by actual rules, but depends on task 2):
-%Todo: Make rules men ROGER THAT !!
+The rule we have configured is for HTTP traffic (We run it on port 5000):
+
 \begin{verbatim}
-iptables -t mangle -A OUTPUT -p udp -m udp --sport 5060 -j DSCP --set-dscp-class cs3
+sudo iptables -t mangle -A OUTPUT -p tcp --dport 5000 -j DSCP --set-dscp-class cs3
 \end{verbatim}
 
-\subsection{Q4.2 Show that the packets are marked}
-In order to show the packets are marked, a \texttt{tcpdump} was started on one of the servers. The resulting PCAP-file was analysed using Wireshark. To check whether DSCP was applied to packets, we searched through the packets using filter \texttt{ip.dsfield.dscp}. The DSCP-value was retrieved from the \texttt{Differentiated Services Field} and ...
-%TODO: CodePoint has to be shown, screenshot pls. Explain codepoint and relevance to IPTables rule.
+The result of the following command shows the value set in the DSCP field:
+\begin{verbatim}
+    iptables -t mangle -L -v
+\end{verbatim}
 
+The result is:
+\begin{verbatim}
+    Chain OUTPUT (policy ACCEPT 1217 packets, 202K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    1    40 DSCP       tcp  --  any    any     anywhere             anywhere        \    
+    tcp dpt:5000 DSCP set 0x18
+\end{verbatim}
+
+So, in the next question we would see HTTP traffic in our tcpdump to be marked with 0x18. In Wireshark the ToS-value is shown. According to https://www.tucny.com/Home/dscp-tos, the ToS value for DSCP 0x18 is 0x60.
+
+\subsection{Q4.2 Show that the packets are marked}
+In order to show the packets are marked, a \texttt{tcpdump} was started on one of the servers. The resulting PCAP-file was analysed using Wireshark. To check whether DSCP was applied to packets, we searched through the packets using filter \texttt{ip.dsfield.dscp}. The DSCP-value was retrieved from the \texttt{Differentiated Services Field} and is shown in \textit{Figure \ref{fig:dscp_marker}}. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=17cm]{figures/dscp_marker.png}
+\caption{DSCP marker 0x18 (ToS: 0x60)}
+\centering
+\label{fig:dscp_marker}
+\end{figure}
 
 \subsection{Q4.3 Show how DSCP marking improves traffic performance.}
+In order to allow DSCP marking, we configured all ports of the switch to trust DSCP markings on ports. We did this using command:
+\begin{verbatim}
+    mls qos trust dscp
+\end{verbatim}
 
-% TODO: answer it LOL
+We also configured the default DSCP-CoS mapping:
+\begin{verbatim}
+    mls qos map cos-dscp 10 15 20 25 30 35 40 45
+\end{verbatim}
+
+The results of the baseline tests are shown in \textit{Figures \ref{fig:ad_no-dscp} and \ref{fig:iperf_no-dscp}}. The figures show the bandwidth share between an \texttt{iperf} connection and an HTTP-connection. The \texttt{iperf} connection appears to be much faster. However, after configuring DSCP we did not see much improvement (only 2 Mbps in the \textttt{iperf} traffic). This is shown in \textit{Figures \ref{fig:ab_dscp} and \ref{fig:iperf_dscp}}.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=15cm]{figures/q4-3-ab-no-dscp.png}
+\caption{AB without DSCP enabled}
+\centering
+\label{fig:ad_no-dscp}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=15cm]{figures/q4-3-iperf-no-dscp.png}
+\caption{iperf without DSCP enabled}
+\centering
+\label{fig:iperf_no-dscp}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=15cm]{figures/q4-3-ab-dscp.png}
+\caption{AB with DSCP enabled}
+\centering
+\label{fig:ab_dscp}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=15cm]{figures/q4-3-iperf-dscp.png}
+\caption{iperf with DSCP enabled}
+\centering
+\label{fig:iperf_dscp}
+\end{figure}
+
+
+
+
+
+
 
 
 \subsection{Q5.1 Enable logging of events (syslog) to an external server.}
 
-By default, syslog is enabled in cisco switches by default. We just need to forward the log to our server. The following command will do that:
+By default, syslog is enabled on cisco switches by default. We just need to forward the log to our server. The following command will do that:
 
 \begin{verbatim}
 gr3switch(config)#logging host 192.168.0.69
+gr3switch(config)#snmp-server enable traps syslog
 
-Now inside /etc/rsyslog.conf 
-# for cisco
-local7.*        /var/log/cisco-messages.log
+Follow the procedure given by this website to \textit{configure remote logging}:
+https://du5tin.com/2017/06/10/set-up-syslog-server-in-ubuntu-server-16-04-w-log-rotation/
+
+/var/log # tail -n2 /var/log/remote/192.168.0.253/syslog.log                                                                                                             root@calais
+2018-02-22T18:03:56.342718+01:00 192.168.0.253 183: *Mar  3 05:03:57.338: %SYS-5-CONFIG_I: Configured from console by henrilarose on vty0 (192.168.0.127)
+2018-02-22T18:04:42.496568+01:00 192.168.0.253 184: *Mar  3 05:04:43.550: %SYS-5-CONFIG_I: Configured from console by henrilarose on vty0 (192.168.0.127)
 \end{verbatim}
+
+\subsection{Q5.2 Monitor your switch so that its statistics can be viewed online. This requires to poll via
+SNMP.}
+
+We chose for monitoring NetDisco.
+
+Following the installation process of the Perl/Postgres/Netdisco Stack is fairly simple following Netdisco's instructions.
+
+https://metacpan.org/pod/App::Netdisco
+
+\begin{verbatim}
+    netdisco@calais:~\$ ~/bin/netdisco-backend start
+Netdisco Backend                                              [Started]
+config watcher: watching /home/netdisco/environments for updates.
+\end{verbatim}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=17cm]{figures/screenshot_netdisco.png}
+\caption{Netdisco network manager Web-Server}
+\centering
+\label{fig:dscp_marker}
+\end{figure}
+
+However, we can't figure out how to make the web-server receive the SNMP syslog traps from the switch. Thus, Netdisco cannot discover the devices on the server.
+
+Switch SNMP configurations:
+\begin{verbatim}
+    snmp-server community an-cos RO
+snmp-server community public RO
+snmp-server community private RW
+snmp-server location os3
+snmp-server contact henrilarose
+snmp-server enable traps syslog
+snmp-server host 192.168.0.127 an-cos  snmp
+snmp-server host 192.168.0.127 henrilarose  syslog
+\end{verbatim}
+
+Switch SNMP status:
+\begin{verbatim}
+    gr3switch#sh snmp
+Chassis: FOC1151Z7ZQ
+Contact: henrilarose
+Location: os3
+4122 SNMP packets input
+    0 Bad SNMP version errors
+    0 Unknown community name
+    0 Illegal operation for community name supplied
+    0 Encoding errors
+    4115 Number of requested variables
+    0 Number of altered variables
+    0 Get-request PDUs
+    4115 Get-next PDUs
+    0 Set-request PDUs
+    0 Input queue packet drops (Maximum queue size 1000)
+4122 SNMP packets output
+    0 Too big errors (Maximum packet size 1500)
+    0 No such name errors
+    0 Bad values errors
+    0 General errors
+    4115 Response PDUs
+    0 Trap PDUs
+SNMP global trap: disabled
+
+SNMP logging: enabled
+    Logging to 192.168.0.127.162, 0/10, 0 sent, 0 dropped.
+SNMP agent enabled
+\end{verbatim}
+
+After an email exchange with Paola, \textit{snmpwalk}, on the server which runs Netdisco, was able to find all devices:
+\begin{verbatim}
+    iso.3.6.1.2.1.1.1.0 = STRING: "Cisco IOS Software, C3750 Software (C3750-IPSERVICESK9-M), Version 12.2(55)SE10, RELEASE SOFTWARE (fc2)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2015 by Cisco Systems, Inc.
+Compiled Wed 11-Feb-15 11:40 by prod_rel_team"
+iso.3.6.1.2.1.1.2.0 = OID: iso.3.6.1.4.1.9.1.516
+iso.3.6.1.2.1.1.3.0 = Timeticks: (20331806) 2 days, 8:28:38.06
+iso.3.6.1.2.1.1.4.0 = ""
+iso.3.6.1.2.1.1.5.0 = STRING: "gr3switch.gr3.com"
+iso.3.6.1.2.1.1.6.0 = ""
+iso.3.6.1.2.1.1.7.0 = INTEGER: 6
+iso.3.6.1.2.1.1.8.0 = Timeticks: (0) 0:00:00.00
+...
+iso.3.6.1.2.1.4.22.1.3.1.192.168.0.3 = IpAddress: 192.168.0.3
+iso.3.6.1.2.1.4.22.1.3.1.192.168.0.69 = IpAddress: 192.168.0.69
+iso.3.6.1.2.1.4.22.1.3.1.192.168.0.127 = IpAddress: 192.168.0.127
+iso.3.6.1.2.1.4.22.1.3.1.192.168.0.200 = IpAddress: 192.168.0.200
+iso.3.6.1.2.1.4.22.1.3.1.192.168.0.253 = IpAddress: 192.168.0.253
+...
+\end{verbatim}
+
+However, the Netdisco back-end server does not seem to be able to do that. We were not able to configure it with Ralph either.
+
 
 
 \end{document}
+
+
