@@ -1,7 +1,7 @@
                                 CCF Lab Assignment:
                                   Data Acquisition
-   
-                              
+                       
+             
 ====== 1 Imaging ======
 
 
@@ -35,6 +35,17 @@ dcfldd if=/dev/sdb1 vf=/media/disk/test_image.dd verifylog=/media/disk/verifylog
 
 Finally, we are going to use dc3dd. Because dcfldd used old version of dd command. However, dc3dd will be updated every time GNU dd is updated und is therefore not affected by any bugs of an old dd version.
 
+dc3dd parameters used:
+
+<code>
+dc3dd if=/dev/sdb hof=sdb_image.img hash=sha256 log=lab1.log cnt=39843750
+</code>
+
+if = read input from FILE
+hof = Write output to a file or device, hash  the  output  bytes,  and verify  by  comparing the output hash(es) to the input hash(es)
+hash = Compute  an  ALGORITHM hash of the input and also of any outputs 
+log = Log  I/O  statistcs,  diagnostics, and total hashes of input and output to FILE
+cnt = Read only SECTORS input sectors.
 
 // Sources: //
 
@@ -259,7 +270,9 @@ Check whether the device has been tampered with. If it's already running we can 
 ** Answer: **
 
 
-In our method we needs to include a where we got our forensic tools on to the live environment. We should also kept the gathered evidence from the live environment onto a stoarage that can be used further in the investigation. So a USB flash drive would be useful for that.
+In our method we needs to include a where we got our forensic tools on to the live environment. We should also kept the gathered evidence from the live environment onto a storage that can be used further in the investigation. So a USB flash drive would be useful for that.
+
+I would first dump the memory so as not to overwrite it for live acquisition in that way pollute the evidence.
 
 
 <WRAP center round tip 60%>11. Describe the new method that you would use to gather data during live forensics. Make sure to categorize by priority.</WRAP>
@@ -402,7 +415,10 @@ In addition to that Cracklib is also installed on the system. Also cron job ever
 
 ** Answer: **
 
-It would help to acquire the decryption keys in order to access the encrypted files inside the home directory. In addition, it would be helpful if we try to recover deleted files and files slack space in order to investigate and check them.
+It would help to acquire the decryption keys in order to access the encrypted files inside the home directory. In addition, it would be helpful if we try to recover deleted files and files slack space in order to investigate and check them. We must also try to find the stor.enc file referenced in /root/.bash_history. also we might look at the files and directories to identify the owner of the disk. We can also try to recover some data that might interesting. 
+
+
+
 
 
 
