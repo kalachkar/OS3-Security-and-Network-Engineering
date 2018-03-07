@@ -1,0 +1,916 @@
+5530-24TFD#show run
+! Embedded ASCII Configuration Generator Script
+! Model = Ethernet Routing Switch 5530-24TFD
+! Software version = v5.0.0.010
+enable
+configure terminal
+!
+! *** CORE ***
+!
+autosave enable
+mac-address-table aging-time 300
+autotopology
+no radius-server
+radius-server host 0.0.0.0
+radius-server secondary-host 0.0.0.0
+radius-server port 1812
+radius-server timeout 2
+tacacs server host  0.0.0.0
+tacacs server secondary-host  0.0.0.0
+tacacs server port 49
+tacacs authorization disable
+tacacs authorization level NONE
+tacacs accounting disable
+telnet-access login-timeout 1               
+telnet-access retry 3
+telnet-access inactive-timeout 15
+telnet-access logging all
+cli password switch serial none
+cli password switch telnet none
+cli password switch read-only "user"
+cli password switch read-write "secure"
+configure network load-on-boot disable 
+tftp-server 0.0.0.0
+!
+! *** SNMP ***
+!
+snmp-server authentication-trap enable
+snmp-server community "public" ro
+snmp-server community "private" rw
+!
+! *** IP ***
+!
+ip bootp server disable
+ip default-gateway 0.0.0.0
+ip address netmask 255.255.255.0
+ip address stack 0.0.0.0                    
+ip address switch 0.0.0.0
+!
+! *** IP Manager ***
+!
+telnet-access enable
+snmp-server enable
+web-server enable
+ipmgr telnet
+ipmgr snmp
+ipmgr web
+ipmgr source-ip 1 0.0.0.0 mask 0.0.0.0
+ipmgr source-ip 2 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 3 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 4 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 5 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 6 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 7 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 8 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 9 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 10 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 11 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 12 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 13 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 14 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 15 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 16 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 17 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 18 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 19 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 20 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 21 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 22 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 23 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 24 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 25 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 26 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 27 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 28 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 29 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 30 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 31 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 32 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 33 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 34 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 35 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 36 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 37 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 38 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 39 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 40 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 41 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 42 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 43 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 44 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 45 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 46 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 47 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 48 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 49 255.255.255.255 mask 255.255.255.255
+ipmgr source-ip 50 255.255.255.255 mask 255.255.255.255
+!
+! *** EAP ***
+!
+eapol disable
+interface FastEthernet ALL
+eapol port 1-26 status authorized traffic-control in-out re-authentication disa
+ble re-authentication-period 3600 re-authenticate quiet-interval 60 transmit-in
+terval 30 supplicant-timeout 30 server-timeout 30 max-request 2
+
+exit
+no eapol multihost allow-non-eap-enable
+no eapol multihost radius-non-eap-enable
+no eapol multihost auto-non-eap-mhsa-enable
+
+interface FastEthernet all
+eapol multihost port 1-26 eap-mac-max 1  non-eap-mac-max 1  
+no eapol multihost port 1-26 enable
+exit
+
+no eapol user-based-policies enable
+!
+! *** System Logging ***
+!
+logging enable level informational nv-level serious
+logging volatile latch
+no logging remote enable
+!
+! *** Default Command Interface ***         
+!
+cmd-interface menu
+!
+! *** Custom Banner ***
+!
+no banner
+banner static
+!
+! *** STP (Phase 1) ***
+!
+spanning-tree cost-calc-mode dot1d
+spanning-tree port-mode normal
+spanning-tree stp 1 priority 8000
+spanning-tree stp 1 hello-time 2
+spanning-tree stp 1 max-age 20
+spanning-tree stp 1 forward-time 15
+spanning-tree stp 1 tagged-bpdu disable tagged-bpdu-vid 4001
+spanning-tree stp 1 multicast-address 01:80:c2:00:00:00
+!
+! *** VLAN ***
+!
+vlan configcontrol flexible                 
+no auto-pvid
+vlan name 1 "VLAN #1"
+! vlan 23 is brouter
+! vlan 26 is brouter
+! vlan 224 is brouter
+! vlan 225 is brouter
+vlan ports 1-22 tagging unTagAll  filter-untagged-frame disable filter-unregist
+ered-frames enable priority 0 
+vlan members 1 1-26
+vlan ports 1-22 pvid 1
+vlan igmp unknown-mcast-no-flood disable
+vlan igmp 1 snooping disable
+vlan igmp 1 proxy disable robust-value 2 query-interval 125
+vlan mgmt 1
+!
+! *** EAP Guest VLAN ***
+!
+eapol guest-vlan vid 1
+no eapol guest-vlan enable
+
+interface FastEthernet all
+no eapol guest-vlan port 1-26 enable        
+exit
+
+!
+! *** Port Mirroring ***
+!
+port-mirroring mode disable
+
+!
+! *** QOS ***
+!
+qos agent reset-default
+interface FastEthernet ALL
+exit
+qos agent nvram-delay 10
+qos agent buffer large
+
+qos agent queue-set 2
+qos agent ubp disable
+
+qos egressmap name "Standard Service" ds 0 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 1 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 2 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 3 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 4 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 5 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 6 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 7 1p 0 dp high-drop
+qos egressmap name "Bronze Service" ds 8 1p 2 dp high-drop
+qos egressmap name "Standard Service" ds 9 1p 0 dp high-drop
+qos egressmap name "Bronze Service" ds 10 1p 2 dp low-drop
+qos egressmap name "Standard Service" ds 11 1p 0 dp high-drop
+qos egressmap name "Bronze Service" ds 12 1p 2 dp high-drop
+qos egressmap name "Standard Service" ds 13 1p 0 dp high-drop
+qos egressmap name "Bronze Service" ds 14 1p 2 dp high-drop
+qos egressmap name "Standard Service" ds 15 1p 0 dp high-drop
+qos egressmap name "Silver Service" ds 16 1p 3 dp high-drop
+qos egressmap name "Standard Service" ds 17 1p 0 dp high-drop
+qos egressmap name "Silver Service" ds 18 1p 3 dp low-drop
+qos egressmap name "Standard Service" ds 19 1p 0 dp high-drop
+qos egressmap name "Silver Service" ds 20 1p 3 dp high-drop
+qos egressmap name "Standard Service" ds 21 1p 0 dp high-drop
+qos egressmap name "Silver Service" ds 22 1p 3 dp high-drop
+qos egressmap name "Standard Service" ds 23 1p 0 dp high-drop
+qos egressmap name "Gold Service" ds 24 1p 4 dp high-drop
+qos egressmap name "Standard Service" ds 25 1p 0 dp high-drop
+qos egressmap name "Gold Service" ds 26 1p 4 dp low-drop
+qos egressmap name "Standard Service" ds 27 1p 0 dp high-drop
+qos egressmap name "Gold Service" ds 28 1p 4 dp high-drop
+qos egressmap name "Standard Service" ds 29 1p 0 dp high-drop
+qos egressmap name "Gold Service" ds 30 1p 4 dp high-drop
+qos egressmap name "Standard Service" ds 31 1p 0 dp high-drop
+qos egressmap name "Platinum Service" ds 32 1p 5 dp high-drop
+qos egressmap name "Standard Service" ds 33 1p 0 dp high-drop
+qos egressmap name "Platinum Service" ds 34 1p 5 dp low-drop
+qos egressmap name "Standard Service" ds 35 1p 0 dp high-drop
+qos egressmap name "Platinum Service" ds 36 1p 5 dp high-drop
+qos egressmap name "Standard Service" ds 37 1p 0 dp high-drop
+qos egressmap name "Platinum Service" ds 38 1p 5 dp high-drop
+qos egressmap name "Standard Service" ds 39 1p 0 dp high-drop
+qos egressmap name "Premium Service" ds 40 1p 6 dp low-drop
+qos egressmap name "Standard Service" ds 41 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 42 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 43 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 44 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 45 1p 0 dp high-drop
+qos egressmap name "Premium Service" ds 46 1p 6 dp low-drop
+qos egressmap name "Standard Service" ds 47 1p 0 dp high-drop
+qos egressmap name "Network Service" ds 48 1p 7 dp low-drop
+qos egressmap name "Standard Service" ds 49 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 50 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 51 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 52 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 53 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 54 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 55 1p 0 dp high-drop
+qos egressmap name "Critical Service" ds 56 1p 7 dp low-drop
+qos egressmap name "Standard Service" ds 57 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 58 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 59 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 60 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 61 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 62 1p 0 dp high-drop
+qos egressmap name "Standard Service" ds 63 1p 0 dp high-drop
+qos ingressmap name "Standard Service" 1p 0 ds 0
+qos ingressmap name "Standard Service" 1p 1 ds 0
+qos ingressmap name "Bronze Service" 1p 2 ds 10
+qos ingressmap name "Silver Service" 1p 3 ds 18
+qos ingressmap name "Gold Service" 1p 4 ds 26
+qos ingressmap name "Platinum Service" 1p 5 ds 34
+qos ingressmap name "Premium Service" 1p 6 ds 46
+qos ingressmap name "Network Service" 1p 7 ds 48
+qos queue-set-assignment queue-set 1 1p 0 queue 1
+qos queue-set-assignment queue-set 1 1p 1 queue 1
+qos queue-set-assignment queue-set 1 1p 2 queue 1
+qos queue-set-assignment queue-set 1 1p 3 queue 1
+qos queue-set-assignment queue-set 1 1p 4 queue 1
+qos queue-set-assignment queue-set 1 1p 5 queue 1
+qos queue-set-assignment queue-set 1 1p 6 queue 1
+qos queue-set-assignment queue-set 1 1p 7 queue 1
+qos queue-set-assignment queue-set 2 1p 0 queue 2
+qos queue-set-assignment queue-set 2 1p 1 queue 2
+qos queue-set-assignment queue-set 2 1p 2 queue 2
+qos queue-set-assignment queue-set 2 1p 3 queue 2
+qos queue-set-assignment queue-set 2 1p 4 queue 1
+qos queue-set-assignment queue-set 2 1p 5 queue 1
+qos queue-set-assignment queue-set 2 1p 6 queue 1
+qos queue-set-assignment queue-set 2 1p 7 queue 1
+qos queue-set-assignment queue-set 3 1p 0 queue 3
+qos queue-set-assignment queue-set 3 1p 1 queue 3
+qos queue-set-assignment queue-set 3 1p 2 queue 3
+qos queue-set-assignment queue-set 3 1p 3 queue 2
+qos queue-set-assignment queue-set 3 1p 4 queue 2
+qos queue-set-assignment queue-set 3 1p 5 queue 2
+qos queue-set-assignment queue-set 3 1p 6 queue 1
+qos queue-set-assignment queue-set 3 1p 7 queue 1
+qos queue-set-assignment queue-set 4 1p 0 queue 4
+qos queue-set-assignment queue-set 4 1p 1 queue 4
+qos queue-set-assignment queue-set 4 1p 2 queue 3
+qos queue-set-assignment queue-set 4 1p 3 queue 3
+qos queue-set-assignment queue-set 4 1p 4 queue 2
+qos queue-set-assignment queue-set 4 1p 5 queue 2
+qos queue-set-assignment queue-set 4 1p 6 queue 1
+qos queue-set-assignment queue-set 4 1p 7 queue 1
+qos queue-set-assignment queue-set 5 1p 0 queue 5
+qos queue-set-assignment queue-set 5 1p 1 queue 5
+qos queue-set-assignment queue-set 5 1p 2 queue 4
+qos queue-set-assignment queue-set 5 1p 3 queue 4
+qos queue-set-assignment queue-set 5 1p 4 queue 3
+qos queue-set-assignment queue-set 5 1p 5 queue 3
+qos queue-set-assignment queue-set 5 1p 6 queue 2
+qos queue-set-assignment queue-set 5 1p 7 queue 1
+qos queue-set-assignment queue-set 6 1p 0 queue 6
+qos queue-set-assignment queue-set 6 1p 1 queue 6
+qos queue-set-assignment queue-set 6 1p 2 queue 5
+qos queue-set-assignment queue-set 6 1p 3 queue 5
+qos queue-set-assignment queue-set 6 1p 4 queue 4
+qos queue-set-assignment queue-set 6 1p 5 queue 3
+qos queue-set-assignment queue-set 6 1p 6 queue 2
+qos queue-set-assignment queue-set 6 1p 7 queue 1
+qos queue-set-assignment queue-set 7 1p 0 queue 7
+qos queue-set-assignment queue-set 7 1p 1 queue 7
+qos queue-set-assignment queue-set 7 1p 2 queue 6
+qos queue-set-assignment queue-set 7 1p 3 queue 5
+qos queue-set-assignment queue-set 7 1p 4 queue 4
+qos queue-set-assignment queue-set 7 1p 5 queue 3
+qos queue-set-assignment queue-set 7 1p 6 queue 2
+qos queue-set-assignment queue-set 7 1p 7 queue 1
+qos queue-set-assignment queue-set 8 1p 0 queue 8
+qos queue-set-assignment queue-set 8 1p 1 queue 7
+qos queue-set-assignment queue-set 8 1p 2 queue 6
+qos queue-set-assignment queue-set 8 1p 3 queue 5
+qos queue-set-assignment queue-set 8 1p 4 queue 4
+qos queue-set-assignment queue-set 8 1p 5 queue 3
+qos queue-set-assignment queue-set 8 1p 6 queue 2
+qos queue-set-assignment queue-set 8 1p 7 queue 1
+!
+! *** RMON ***
+!
+no rmon event
+no rmon history
+rmon history 1 1 15 30 owner "monitor"
+rmon history 2 2 15 30 owner "monitor"
+rmon history 3 3 15 30 owner "monitor"
+rmon history 4 4 15 30 owner "monitor"
+rmon history 5 5 15 30 owner "monitor"
+rmon history 6 6 15 30 owner "monitor"
+rmon history 7 7 15 30 owner "monitor"
+rmon history 8 8 15 30 owner "monitor"
+rmon history 9 9 15 30 owner "monitor"
+rmon history 10 10 15 30 owner "monitor"
+rmon history 11 11 15 30 owner "monitor"
+rmon history 12 12 15 30 owner "monitor"
+rmon history 13 13 15 30 owner "monitor"
+rmon history 14 14 15 30 owner "monitor"
+rmon history 15 15 15 30 owner "monitor"
+rmon history 16 16 15 30 owner "monitor"    
+rmon history 17 17 15 30 owner "monitor"
+rmon history 18 18 15 30 owner "monitor"
+rmon history 19 19 15 30 owner "monitor"
+rmon history 20 20 15 30 owner "monitor"
+rmon history 21 21 15 30 owner "monitor"
+rmon history 22 22 15 30 owner "monitor"
+rmon history 23 23 15 30 owner "monitor"
+rmon history 24 24 15 30 owner "monitor"
+rmon history 25 25 15 30 owner "monitor"
+rmon history 26 26 15 30 owner "monitor"
+rmon history 27 1 5 1800 owner "monitor"
+rmon history 28 2 5 1800 owner "monitor"
+rmon history 29 3 5 1800 owner "monitor"
+rmon history 30 4 5 1800 owner "monitor"
+rmon history 31 5 5 1800 owner "monitor"
+rmon history 32 6 5 1800 owner "monitor"
+rmon history 33 7 5 1800 owner "monitor"
+rmon history 34 8 5 1800 owner "monitor"
+rmon history 35 9 5 1800 owner "monitor"
+rmon history 36 10 5 1800 owner "monitor"
+rmon history 37 11 5 1800 owner "monitor"
+rmon history 38 12 5 1800 owner "monitor"   
+rmon history 39 13 5 1800 owner "monitor"
+rmon history 40 14 5 1800 owner "monitor"
+rmon history 41 15 5 1800 owner "monitor"
+rmon history 42 16 5 1800 owner "monitor"
+rmon history 43 17 5 1800 owner "monitor"
+rmon history 44 18 5 1800 owner "monitor"
+rmon history 45 19 5 1800 owner "monitor"
+rmon history 46 20 5 1800 owner "monitor"
+rmon history 47 21 5 1800 owner "monitor"
+rmon history 48 22 5 1800 owner "monitor"
+rmon history 49 23 5 1800 owner "monitor"
+rmon history 50 24 5 1800 owner "monitor"
+rmon history 51 25 5 1800 owner "monitor"
+rmon history 52 26 5 1800 owner "monitor"
+no rmon stats
+rmon stats 1 1 owner "monitor"
+rmon stats 2 2 owner "monitor"
+rmon stats 3 3 owner "monitor"
+rmon stats 4 4 owner "monitor"
+rmon stats 5 5 owner "monitor"
+rmon stats 6 6 owner "monitor"
+rmon stats 7 7 owner "monitor"              
+rmon stats 8 8 owner "monitor"
+rmon stats 9 9 owner "monitor"
+rmon stats 10 10 owner "monitor"
+rmon stats 11 11 owner "monitor"
+rmon stats 12 12 owner "monitor"
+rmon stats 13 13 owner "monitor"
+rmon stats 14 14 owner "monitor"
+rmon stats 15 15 owner "monitor"
+rmon stats 16 16 owner "monitor"
+rmon stats 17 17 owner "monitor"
+rmon stats 18 18 owner "monitor"
+rmon stats 19 19 owner "monitor"
+rmon stats 20 20 owner "monitor"
+rmon stats 21 21 owner "monitor"
+rmon stats 22 22 owner "monitor"
+rmon stats 23 23 owner "monitor"
+rmon stats 24 24 owner "monitor"
+rmon stats 25 25 owner "monitor"
+rmon stats 26 26 owner "monitor"
+no rmon alarm
+!
+! *** Interface ***                         
+!
+interface FastEthernet ALL
+default auto-negotiation-advertisements port 1-24 
+no shutdown port 1-26 
+snmp trap link-status port 1-26 enable
+speed port 1-24 auto
+!speed port 25-26 10000
+flowcontrol port 25-26 disable
+duplex port 1-24 auto
+! duplex port 25-26 full
+exit
+interface FastEthernet ALL
+rate-limit port 1-24 both 0
+rate-limit port 25-26 both 10
+exit
+!
+! *** MLT (Phase 1) ***
+!
+no mlt
+mlt 1 name "Trunk #1" disable member NONE learning normal
+mlt 1 learning normal
+mlt 1 loadbalance basic                     
+mlt 2 name "Trunk #2" disable member NONE learning normal
+mlt 2 learning normal
+mlt 2 loadbalance basic
+mlt 3 name "Trunk #3" disable member NONE learning normal
+mlt 3 learning normal
+mlt 3 loadbalance basic
+mlt 4 name "Trunk #4" disable member NONE learning normal
+mlt 4 learning normal
+mlt 4 loadbalance basic
+mlt 5 name "Trunk #5" disable member NONE learning normal
+mlt 5 learning normal
+mlt 5 loadbalance basic
+mlt 6 name "Trunk #6" disable member NONE learning normal
+mlt 6 learning normal
+mlt 6 loadbalance basic
+mlt 7 name "Trunk #7" disable member NONE learning normal
+mlt 7 learning normal
+mlt 7 loadbalance basic
+mlt 8 name "Trunk #8" disable member NONE learning normal
+mlt 8 learning normal
+mlt 8 loadbalance basic
+mlt 9 name "Trunk #9" disable member NONE learning normal
+mlt 9 learning normal
+mlt 9 loadbalance basic
+mlt 10 name "Trunk #10" disable member NONE learning normal
+mlt 10 learning normal
+mlt 10 loadbalance basic
+mlt 11 name "Trunk #11" disable member NONE learning normal
+mlt 11 learning normal
+mlt 11 loadbalance basic
+mlt 12 name "Trunk #12" disable member NONE learning normal
+mlt 12 learning normal
+mlt 12 loadbalance basic
+mlt 13 name "Trunk #13" disable member NONE learning normal
+mlt 13 learning normal
+mlt 13 loadbalance basic
+mlt 14 name "Trunk #14" disable member NONE learning normal
+mlt 14 learning normal
+mlt 14 loadbalance basic
+mlt 15 name "Trunk #15" disable member NONE learning normal
+mlt 15 learning normal
+mlt 15 loadbalance basic
+mlt 16 name "Trunk #16" disable member NONE learning normal
+mlt 16 learning normal                      
+mlt 16 loadbalance basic
+mlt 17 name "Trunk #17" disable member NONE learning normal
+mlt 17 learning normal
+mlt 17 loadbalance basic
+mlt 18 name "Trunk #18" disable member NONE learning normal
+mlt 18 learning normal
+mlt 18 loadbalance basic
+mlt 19 name "Trunk #19" disable member NONE learning normal
+mlt 19 learning normal
+mlt 19 loadbalance basic
+mlt 20 name "Trunk #20" disable member NONE learning normal
+mlt 20 learning normal
+mlt 20 loadbalance basic
+mlt 21 name "Trunk #21" disable member NONE learning normal
+mlt 21 learning normal
+mlt 21 loadbalance basic
+mlt 22 name "Trunk #22" disable member NONE learning normal
+mlt 22 learning normal
+mlt 22 loadbalance basic
+mlt 23 name "Trunk #23" disable member NONE learning normal
+mlt 23 learning normal
+mlt 23 loadbalance basic                    
+mlt 24 name "Trunk #24" disable member NONE learning normal
+mlt 24 learning normal
+mlt 24 loadbalance basic
+mlt 25 name "Trunk #25" disable member NONE learning normal
+mlt 25 learning normal
+mlt 25 loadbalance basic
+mlt 26 name "Trunk #26" disable member NONE learning normal
+mlt 26 learning normal
+mlt 26 loadbalance basic
+mlt 27 name "Trunk #27" disable member NONE learning normal
+mlt 27 learning normal
+mlt 27 loadbalance basic
+mlt 28 name "Trunk #28" disable member NONE learning normal
+mlt 28 learning normal
+mlt 28 loadbalance basic
+mlt 29 name "Trunk #29" disable member NONE learning normal
+mlt 29 learning normal
+mlt 29 loadbalance basic
+mlt 30 name "Trunk #30" disable member NONE learning normal
+mlt 30 learning normal
+mlt 30 loadbalance basic
+mlt 31 name "Trunk #31" disable member NONE learning normal
+mlt 31 learning normal
+mlt 31 loadbalance basic
+mlt 32 name "Trunk #32" disable member NONE learning normal
+mlt 32 learning normal
+mlt 32 loadbalance basic
+!
+! *** MAC-Based Security ***
+!
+mac-security security-list 1 NONE
+mac-security security-list 2 NONE
+mac-security security-list 3 NONE
+mac-security security-list 4 NONE
+mac-security security-list 5 NONE
+mac-security security-list 6 NONE
+mac-security security-list 7 NONE
+mac-security security-list 8 NONE
+mac-security security-list 9 NONE
+mac-security security-list 10 NONE
+mac-security security-list 11 NONE
+mac-security security-list 12 NONE
+mac-security security-list 13 NONE
+mac-security security-list 14 NONE          
+mac-security security-list 15 NONE
+mac-security security-list 16 NONE
+mac-security security-list 17 NONE
+mac-security security-list 18 NONE
+mac-security security-list 19 NONE
+mac-security security-list 20 NONE
+mac-security security-list 21 NONE
+mac-security security-list 22 NONE
+mac-security security-list 23 NONE
+mac-security security-list 24 NONE
+mac-security security-list 25 NONE
+mac-security security-list 26 NONE
+mac-security security-list 27 NONE
+mac-security security-list 28 NONE
+mac-security security-list 29 NONE
+mac-security security-list 30 NONE
+mac-security security-list 31 NONE
+mac-security security-list 32 NONE
+no mac-security mac-address-table
+interface FastEthernet ALL
+mac-security port ALL disable
+default mac-security auto-learning port ALL 
+exit
+mac-security disable
+mac-security snmp-lock disable
+mac-security intrusion-detect disable
+mac-security filtering disable
+mac-security snmp-trap disable
+mac-security auto-learning aging-time 60
+mac-security learning-ports NONE
+mac-security learning disable
+!
+! *** LACP ***
+!
+lacp system-priority 32768
+lacp port-mode default
+interface fastEthernet ALL
+no lacp aggregation port 1-26 enable
+lacp mode port 1-26 off
+lacp key port 1-26 1
+lacp priority port 1-26 32768
+lacp timeout-time port 1-26 long
+exit
+!                                           
+! *** ADAC ***
+!
+no adac enable
+no adac mac-range-table
+interface FastEthernet ALL
+no adac port ALL enable
+exit
+adac mac-range-table low-end 00-0A-E4-01-10-20 high-end 00-0A-E4-01-23-A7
+adac mac-range-table low-end 00-0A-E4-01-70-EC high-end 00-0A-E4-01-84-73
+adac mac-range-table low-end 00-0A-E4-01-A1-C8 high-end 00-0A-E4-01-AD-7F
+adac mac-range-table low-end 00-0A-E4-01-DA-4E high-end 00-0A-E4-01-ED-D5
+adac mac-range-table low-end 00-0A-E4-02-1E-D4 high-end 00-0A-E4-02-32-5B
+adac mac-range-table low-end 00-0A-E4-02-5D-22 high-end 00-0A-E4-02-70-A9
+adac mac-range-table low-end 00-0A-E4-02-D8-AE high-end 00-0A-E4-02-FF-BD
+adac mac-range-table low-end 00-0A-E4-03-87-E4 high-end 00-0A-E4-03-89-0F
+adac mac-range-table low-end 00-0A-E4-03-90-E0 high-end 00-0A-E4-03-B7-EF
+adac mac-range-table low-end 00-0A-E4-04-1A-56 high-end 00-0A-E4-04-41-65
+adac mac-range-table low-end 00-0A-E4-04-80-E8 high-end 00-0A-E4-04-A7-F7
+adac mac-range-table low-end 00-0A-E4-04-D2-FC high-end 00-0A-E4-05-48-2B
+adac mac-range-table low-end 00-0A-E4-05-B7-DF high-end 00-0A-E4-06-05-FE
+adac mac-range-table low-end 00-0A-E4-06-55-EC high-end 00-0A-E4-07-19-3B
+adac mac-range-table low-end 00-0A-E4-08-0A-02 high-end 00-0A-E4-08-7F-31
+adac mac-range-table low-end 00-0A-E4-08-B2-89 high-end 00-0A-E4-09-75-D8
+adac mac-range-table low-end 00-0A-E4-09-BB-9D high-end 00-0A-E4-09-CF-24
+adac mac-range-table low-end 00-0A-E4-09-FC-2B high-end 00-0A-E4-0A-71-5A
+adac mac-range-table low-end 00-0A-E4-0A-9D-DA high-end 00-0A-E4-0B-61-29
+adac mac-range-table low-end 00-0A-E4-0B-BB-FC high-end 00-0A-E4-0B-BC-0F
+adac mac-range-table low-end 00-0A-E4-0B-D9-BE high-end 00-0A-E4-0C-9D-0D
+adac traps enable
+no adac voice-vlan
+no adac call-server-port
+no adac uplink-port
+adac op-mode untagged-frames-basic
+!
+! *** STP (Phase 2) ***
+!
+spanning-tree stp 1 add-vlan 1
+interface FastEthernet ALL
+spanning-tree port 1-22 learning normal 
+spanning-tree port 1-22 cost 1 priority 80
+spanning-tree bpdu-filtering port 1-26 timeout 120
+no spanning-tree bpdu-filtering port 1-26 enable
+exit
+interface FastEthernet ALL                  
+spanning-tree port 23-26 learning disable
+exit
+!
+! *** MLT (Phase 2) ***
+!
+!
+! *** PoE ***
+!
+!
+! *** AUR ***
+!
+stack auto-unit-replacement enable
+!
+! *** AAUR ***
+!
+stack auto-unit-replacement-image enable
+!
+! *** SNTP ***
+!
+sntp server primary address 0.0.0.0
+sntp server secondary address 0.0.0.0
+no sntp enable                              
+sntp sync-interval 24
+!
+! *** RTC ***
+!
+! clock set 06:26:12 12 January 2005
+clock source sntp
+no clock sync-rtc-with-sntp enable
+!
+! *** L3 ***
+!
+no ip directed-broadcast enable
+ip routing
+ip arp timeout 360
+ip dhcp-relay
+ip route 192.168.6.6 255.255.255.255 192.168.2.6 2
+ip blocking-mode none
+!
+! *** VLACP ***
+!
+no vlacp enable
+vlacp macaddress 180.c200.1100
+interface FastEthernet ALL                  
+vlacp port 1-26 ethertype 0x8103
+vlacp port 1-26 funcmac-addr 180.c200.1100
+vlacp port 1-26 fast-periodic-time 500
+vlacp port 1-26 slow-periodic-time 30000
+vlacp port 1-26 timeout long
+vlacp port 1-26 timeout-scale 3
+no vlacp port 1-26 enable
+exit
+!
+! *** Brouter Port ***
+!
+interface fastEthernet ALL
+brouter port 23 vlan 23 subnet 10.3.3.2/24
+brouter port 24 vlan 224 subnet 10.3.4.2/24
+brouter port 25 vlan 225 subnet 10.3.2.2/24
+brouter port 26 vlan 26 subnet 192.168.2.3/24
+exit
+!
+! *** L3 Protocols ***
+!
+
+! --- ECMP ---                              
+
+maximum-path 1
+rip maximum-path 1
+ospf maximum-path 1
+
+! --- Proxy ARP ---
+
+interface vlan 23
+no ip arp-proxy enable
+exit
+interface vlan 26
+no ip arp-proxy enable
+exit
+interface vlan 224
+no ip arp-proxy enable
+exit
+interface vlan 225
+no ip arp-proxy enable
+exit
+
+! --- UDP Broadcast Forwarding --- 
+                                            
+ip forward-protocol udp 37 Time Service
+ip forward-protocol udp 49 TACACS Service
+ip forward-protocol udp 53 DNS
+ip forward-protocol udp 69 TFTP
+ip forward-protocol udp 137 NetBIOS NameSrv
+ip forward-protocol udp 138 NetBIOS DataSrv
+
+! --- VRRP ---
+
+no router vrrp enable
+router vrrp
+send-trap enable
+ping-virtual-address enable
+exit
+enable
+configure terminal
+
+! --- Route Policies ---
+
+
+! --- OSPF ---
+                                            
+no router ospf enable
+router ospf
+router-id 202.71.168.0
+no as-boundary-router enable
+no trap enable
+timers basic holddown 10
+rfc1583-compatibility enable
+default-cost ethernet 100
+default-cost fast-ethernet 10
+default-cost gig-ethernet 1
+default-cost ten-gig-ethernet 1
+!area 0.0.0.0 import external 
+!area 0.0.0.0 import-summaries enable
+exit
+enable
+configure terminal
+interface vlan 225
+ip ospf area 0.0.0.0
+ip ospf network broadcast
+ip ospf priority 1
+ip ospf authentication-type none
+ip ospf mtu-ignore enable                   
+no ip ospf advertise-when-down enable
+ip ospf transmit-delay 1
+ip ospf retransmit-interval 5
+ip ospf hello-interval 10
+ip ospf dead-interval 40
+no ip ospf enable
+exit
+interface vlan 23
+ip ospf area 0.0.0.0
+ip ospf network broadcast
+ip ospf priority 1
+ip ospf authentication-type none
+ip ospf mtu-ignore enable
+no ip ospf advertise-when-down enable
+ip ospf transmit-delay 1
+ip ospf retransmit-interval 5
+ip ospf hello-interval 10
+ip ospf dead-interval 40
+no ip ospf enable
+exit
+interface vlan 224
+ip ospf area 0.0.0.0                        
+ip ospf network broadcast
+ip ospf priority 1
+ip ospf authentication-type none
+ip ospf mtu-ignore enable
+no ip ospf advertise-when-down enable
+ip ospf transmit-delay 1
+ip ospf retransmit-interval 5
+ip ospf hello-interval 10
+ip ospf dead-interval 40
+no ip ospf enable
+exit
+interface vlan 26
+ip ospf area 0.0.0.0
+ip ospf network broadcast
+ip ospf priority 1
+ip ospf authentication-type none
+ip ospf mtu-ignore enable
+no ip ospf advertise-when-down enable
+ip ospf transmit-delay 1
+ip ospf retransmit-interval 5
+ip ospf hello-interval 10
+ip ospf dead-interval 40                    
+no ip ospf enable
+exit
+
+! --- RIP ---
+
+router rip
+router rip enable
+timers basic holddown 10
+timers basic timeout 20 update 10
+default-metric 8
+network 10.3.2.2
+network 10.3.3.2
+network 10.3.4.2
+network 192.168.2.3
+exit
+enable
+configure terminal
+interface vlan 225
+no ip rip advertise-when-down enable
+no ip rip auto-aggregation enable
+no ip rip default-listen enable
+ip rip default-supply enable                
+ip rip cost 1
+ip rip holddown 120
+ip rip listen enable
+no ip rip poison enable
+no ip rip proxy-announce enable
+ip rip receive version rip2
+ip rip send version rip2
+ip rip timeout 180
+no ip rip triggered enable
+ip rip supply enable
+exit
+interface vlan 23
+no ip rip advertise-when-down enable
+no ip rip auto-aggregation enable
+no ip rip default-listen enable
+ip rip default-supply enable
+ip rip cost 1
+ip rip holddown 120
+ip rip listen enable
+no ip rip poison enable
+no ip rip proxy-announce enable
+ip rip receive version rip2                 
+ip rip send version rip2
+ip rip timeout 180
+no ip rip triggered enable
+ip rip supply enable
+exit
+interface vlan 224
+no ip rip advertise-when-down enable
+no ip rip auto-aggregation enable
+no ip rip default-listen enable
+ip rip default-supply enable
+ip rip cost 1
+ip rip holddown 120
+ip rip listen enable
+no ip rip poison enable
+no ip rip proxy-announce enable
+ip rip receive version rip2
+ip rip send version rip2
+ip rip timeout 180
+no ip rip triggered enable
+ip rip supply enable
+exit
+interface vlan 26                           
+no ip rip advertise-when-down enable
+no ip rip auto-aggregation enable
+no ip rip default-listen enable
+no ip rip default-supply enable
+ip rip cost 1
+ip rip holddown 120
+no ip rip listen enable
+no ip rip poison enable
+no ip rip proxy-announce enable
+ip rip receive version rip2
+ip rip send version rip2
+ip rip timeout 180
+no ip rip triggered enable
+no ip rip supply enable
+exit
+!
+! *** DHCP SNOOPING ***
+!
+no ip dhcp-snooping
+no ip dhcp-snooping vlan
+interface FastEthernet ALL
+default ip dhcp-snooping                    
+exit
+!
+! *** ARP INPSECTION ***
+!
+no ip arp-inspection vlan
+interface FastEthernet ALL
+default ip arp-inspection
+exit
+!
+! *** SMLT ***
+!
+

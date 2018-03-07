@@ -1,0 +1,540 @@
+# access Juniper logical router
+IP: 10.0.1.22
+Reachable through SSH
+Password: group3
+User: group3
+
+
+
+
+#  Henry configuration on cisco 1
+
+\begin{verbatim}
+    
+
+chico3-1#show run
+Building configuration...
+
+Current configuration : 2694 bytes
+!
+version 12.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service unsupported-transceiver
+!
+hostname chico3-1
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$8w9r$LUktAAEhyaLJup1.1wXAv/
+!
+username henrilarose privilege 15 password 7 045307145C03455A0A11
+!
+!
+no aaa new-model
+switch 1 provision ws-c3750g-24ps
+system mtu routing 1500
+ip routing
+ip domain-name group3.com
+!
+!
+!
+!
+!
+!
+!
+!
+no errdisable detect cause gbic-invalid
+!
+spanning-tree mode mst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+ip ssh version 2
+!
+!
+!
+interface Port-channel1
+ no switchport
+ ip address 10.3.5.1 255.255.255.0
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ no ip address
+ shutdown
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ no ip address
+ shutdown
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/3
+ no switchport
+ ip address 10.3.3.1 255.255.255.0
+!
+interface GigabitEthernet1/0/4
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/5
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/6
+!
+interface GigabitEthernet1/0/7
+!
+interface GigabitEthernet1/0/8
+!
+interface GigabitEthernet1/0/9
+!
+interface GigabitEthernet1/0/10
+!
+interface GigabitEthernet1/0/11
+!
+interface GigabitEthernet1/0/12
+!
+interface GigabitEthernet1/0/13
+!
+interface GigabitEthernet1/0/14
+!
+interface GigabitEthernet1/0/15
+!
+interface GigabitEthernet1/0/16
+!
+interface GigabitEthernet1/0/17
+!
+interface GigabitEthernet1/0/18
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/19
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/20
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/21
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/22
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/23
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/24
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/25
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/26
+!
+interface GigabitEthernet1/0/27
+!
+interface GigabitEthernet1/0/28
+!
+interface Vlan1
+ ip address 10.3.254.1 255.255.255.0
+!
+interface Vlan2
+ ip address 10.0.2.1 255.255.255.0
+!
+interface Vlan3
+ ip address 10.0.3.1 255.255.255.0
+!
+router ospf 1
+ log-adjacency-changes
+!
+ip classless
+ip http server
+ip http secure-server
+!
+!
+!
+snmp-server community public RO
+!
+!         
+line con 0
+line vty 0 4
+ password 7 065108331F6C000D061F
+ login local
+ transport input ssh
+line vty 5 15
+ login
+!
+end
+
+\end{verbatim}
+
+
+
+Chico 2 Config before I start:
+
+\begin{verbatim}
+    chico3-2#show run
+Building configuration...
+
+Current configuration : 2818 bytes
+!
+version 12.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service unsupported-transceiver
+!
+hostname chico3-2
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$pN.U$rNoIuaQf0TBW7fsGMuzg90
+!
+username henrilarose privilege 15 password 7 151A071E570822302B3B
+!
+!
+no aaa new-model
+switch 2 provision ws-c3750g-24ps
+system mtu routing 1500
+ip routing
+ip domain-name group3.com
+!
+!
+!
+!
+!
+!
+!
+!
+no errdisable detect cause gbic-invalid
+spanning-tree mode pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+ip ssh version 2
+!
+!
+!
+interface Port-channel1
+ no switchport
+ ip address 10.3.5.2 255.255.255.0
+!         
+interface GigabitEthernet2/0/1
+ no switchport
+ ip address 10.3.4.1 255.255.255.0
+!
+interface GigabitEthernet2/0/2
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet2/0/3
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet2/0/4
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/5
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/6
+!
+interface GigabitEthernet2/0/7
+!
+interface GigabitEthernet2/0/8
+!
+interface GigabitEthernet2/0/9
+!
+interface GigabitEthernet2/0/10
+ no switchport
+ ip address 10.3.20.254 255.255.255.0
+!
+interface GigabitEthernet2/0/11
+!
+interface GigabitEthernet2/0/12
+!
+interface GigabitEthernet2/0/13
+!
+interface GigabitEthernet2/0/14
+!
+interface GigabitEthernet2/0/15
+!
+interface GigabitEthernet2/0/16
+!         
+interface GigabitEthernet2/0/17
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/18
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/19
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/20
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/21
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/22
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/23
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/24
+ no switchport
+ no ip address
+!
+interface GigabitEthernet2/0/25
+!
+interface GigabitEthernet2/0/26
+!
+interface GigabitEthernet2/0/27
+!
+interface GigabitEthernet2/0/28
+ no switchport
+ ip address 10.3.1.2 255.255.255.0
+!
+interface Vlan1
+ ip address 10.3.254.2 255.255.255.0
+!
+router ospf 1
+ log-adjacency-changes
+ redistribute connected
+ redistribute rip
+ network 10.3.1.0 0.0.0.255 area 0.0.0.1
+ network 10.3.5.0 0.0.0.255 area 0.0.0.1
+ network 10.3.20.0 0.0.0.255 area 0.0.0.1
+!
+router rip
+ version 2
+ redistribute connected
+ redistribute ospf 1
+ network 10.0.0.0
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 192.168.2.3
+ip http server
+ip http secure-server
+!
+!
+!
+snmp-server community public RO
+!
+!         
+line con 0
+line vty 0 4
+ password 7 1515195F26233F2720
+ login local
+ transport input ssh
+line vty 5 15
+ login
+!
+end
+
+chico3-2#
+\end{verbatim}
+
+
+Chico 1 configuration Before I start:
+
+\begin{verbatim}
+    chico3-1#show run
+Building configuration...
+
+Current configuration : 2736 bytes
+!
+version 12.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service unsupported-transceiver
+!
+hostname chico3-1
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$8w9r$LUktAAEhyaLJup1.1wXAv/
+!
+username henrilarose privilege 15 password 7 045307145C03455A0A11
+!
+!
+no aaa new-model
+switch 1 provision ws-c3750g-24ps
+system mtu routing 1500
+ip routing
+ip domain-name group3.com
+!
+!
+!
+!
+!
+!
+!
+!
+no errdisable detect cause gbic-invalid
+!
+spanning-tree mode mst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+ip ssh version 2
+!
+!
+!
+interface Port-channel1
+ no switchport
+ ip address 10.3.5.1 255.255.255.0
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.3.3.1 255.255.255.0
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/3
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/4
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/5
+ no switchport
+ no ip address
+!         
+interface GigabitEthernet1/0/6
+!
+interface GigabitEthernet1/0/7
+!
+interface GigabitEthernet1/0/8
+!
+interface GigabitEthernet1/0/9
+!
+interface GigabitEthernet1/0/10
+!
+interface GigabitEthernet1/0/11
+!
+interface GigabitEthernet1/0/12
+!
+interface GigabitEthernet1/0/13
+!
+interface GigabitEthernet1/0/14
+!
+interface GigabitEthernet1/0/15
+!
+interface GigabitEthernet1/0/16
+!
+interface GigabitEthernet1/0/17
+!
+interface GigabitEthernet1/0/18
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/19
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/20
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/21
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/22
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/23
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/24
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/25
+ no switchport
+ ip address 10.3.0.2 255.255.255.0
+!
+interface GigabitEthernet1/0/26
+!
+interface GigabitEthernet1/0/27
+!
+interface GigabitEthernet1/0/28
+!
+interface Vlan1
+ ip address 10.3.254.1 255.255.255.0
+!
+router ospf 1
+ log-adjacency-changes
+ redistribute connected
+ redistribute rip
+ network 10.3.0.0 0.0.0.255 area 0.0.0.1
+ network 10.3.5.0 0.0.0.255 area 0.0.0.1
+!
+router rip
+ version 2
+ redistribute connected
+ redistribute ospf 1
+ network 10.0.0.0
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 192.168.2.3
+ip http server
+ip http secure-server
+!
+!
+!
+snmp-server community public RO
+!
+!
+line con 0
+line vty 0 4
+ password 7 065108331F6C000D061F
+ login local
+ transport input ssh
+line vty 5 15
+ login
+!
+end
+
+\end{verbatim}

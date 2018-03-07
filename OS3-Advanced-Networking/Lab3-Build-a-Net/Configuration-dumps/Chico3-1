@@ -1,0 +1,179 @@
+Current configuration : 2968 bytes
+!
+version 12.2
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+service unsupported-transceiver
+!
+hostname chico3-1
+!
+boot-start-marker
+boot-end-marker
+!
+enable secret 5 $1$8w9r$LUktAAEhyaLJup1.1wXAv/
+!
+username henrilarose privilege 15 password 7 045307145C03455A0A11
+!
+!
+no aaa new-model
+switch 1 provision ws-c3750g-24ps
+system mtu routing 1500
+ip routing
+ip domain-name group3.com
+!
+!
+!
+!
+!
+!
+!
+!
+no errdisable detect cause gbic-invalid
+!
+spanning-tree mode mst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+ip ssh version 2
+!
+!
+!
+interface Port-channel1
+no switchport
+ ip address 10.3.5.1 255.255.255.0
+!
+interface GigabitEthernet1/0/1
+ no switchport
+ ip address 10.3.3.1 255.255.255.0
+!
+interface GigabitEthernet1/0/2
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/3
+ no switchport
+ no ip address
+ channel-group 1 mode active
+!
+interface GigabitEthernet1/0/4
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/5
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/6
+!
+interface GigabitEthernet1/0/7
+ no switchport
+ ip address 10.3.150.2 255.255.255.0
+!
+interface GigabitEthernet1/0/8
+!
+interface GigabitEthernet1/0/9
+ no switchport
+ ip address 10.3.109.1 255.255.255.0
+!
+interface GigabitEthernet1/0/10
+!
+interface GigabitEthernet1/0/11
+ no switchport
+ ip address 10.3.196.2 255.255.255.0
+!
+interface GigabitEthernet1/0/12
+!
+interface GigabitEthernet1/0/13
+!
+interface GigabitEthernet1/0/14
+!
+interface GigabitEthernet1/0/15
+!
+interface GigabitEthernet1/0/16
+!
+interface GigabitEthernet1/0/17
+!
+interface GigabitEthernet1/0/18
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/19
+ switchport access vlan 2
+ switchport mode access
+!
+interface GigabitEthernet1/0/20
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/21
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/22
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/23
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/24
+ no switchport
+ no ip address
+!
+interface GigabitEthernet1/0/25
+ no switchport
+ ip address 10.3.0.2 255.255.255.0
+ ip rip advertise 10
+!
+interface GigabitEthernet1/0/26
+!
+interface GigabitEthernet1/0/27
+!
+interface GigabitEthernet1/0/28
+!
+interface Vlan1
+ ip address 10.3.254.1 255.255.255.0
+ ip rip advertise 10
+!
+router ospf 1
+ log-adjacency-changes
+ redistribute connected
+ redistribute rip subnets
+ network 10.3.0.0 0.0.0.255 area 0.0.0.1
+ network 10.3.5.0 0.0.0.255 area 0.0.0.1
+ network 10.3.69.0 0.0.0.255 area 0.0.0.1
+ network 10.3.150.0 0.0.0.255 area 0.0.0.1
+ network 10.3.196.0 0.0.0.255 area 0.0.0.1
+ network 10.3.222.0 0.0.0.255 area 0.0.0.1
+!
+router rip
+ version 2
+ timers basic 10 20 10 60
+ redistribute connected
+ redistribute ospf 1
+ network 10.0.0.0
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 192.168.2.3
+ip http server
+ip http secure-server
+!
+!
+!
+snmp-server community public RO
+!
+!
+line con 0
+line vty 0 4
+ password 7 065108331F6C000D061F
+ login local
+ transport input ssh
+line vty 5 15
+ login
+!
+end
