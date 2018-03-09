@@ -1,0 +1,102 @@
+R1:
+
+Lo0.1 = 1.1.1.1/32 in unit 1 (ldp)
+ge-4/0/0.0 = address 192.168.2.1/30 in unit 0 (ldp)
+ge-4/0/2.0 = address 192.168.3.1/30 in unit 0
+ge-4/0/4.0 = address 192.168.5.1/30 in unit 0
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, traffic-engineering, bgp-igp, icmp-tunneling
+router-id: 1.1.1.1
+
+Need explanation: 
+1- mpls label-switched-path toR7 to 7.7.7.7 
+2- mpls label-switched-path toR7 to 6.6.6.6
+
+All configured as point to point
+------------------------------------------------------
+
+R2:
+
+lo0.2 = 2.2.2.2/32 in unit 2
+ge-4/0/1.0 = address 192.168.2.2/30 in unit 0
+ge-4/0/6.0 = address 192.168.4.1/30 in unit 0
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling, ldp
+router-id: 2.2.2.2
+
+------------------------------------------------------
+
+R3:
+
+lo0.3 = 3.3.3.3/32 in unit 3 (ldp)
+ge-4/0/7.0 = address 192.168.4.2/30 in unit 0 (ldp)
+ge-4/0/8.0 = address 192.168.6.1/30 in unit 0
+
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling
+router-id: 3.3.3.3
+
+------------------------------------------------------
+
+R4:
+
+lo0.4 = 4.4.4.4/32 in unit 4 (ldp)
+ge-4/0/9.0 = address 192.168.6.2/30 in unit 0
+ge-4/0/3.0 = address 192.168.3.2/30 in unit 0
+ge-4/3/0.0 = address 192.168.8.2/30 in unit 0 (ldp)
+ge-4/3/2.0 = address 192.168.7.2/30 in unit 0 (ldp)
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling
+router-id: 4.4.4.4
+
+------------------------------------------------------
+
+R5:
+
+lo0.5 = 5.5.5.5/32 in unit 5
+ge-4/3/1.0 = address 192.168.8.1/30 in unit 0
+ge-4/3/4.0 = address 192.168.10.2/30 in unit 0
+ge-4/3/6.0 = address 192.168.9.1/30 in unit 0
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling, ldp
+router-id: 5.5.5.5
+
+------------------------------------------------------
+
+R6:
+
+lo0.6 = 6.6.6.6/32 in unit 6 (ldp)
+ge-4/0/5.0 = address 192.168.5.2/30 in unit 0
+ge-4/3/5.0 = address 192.168.10.1/30 in unit 0 (ldp)
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling
+router-id: 6.6.6.6
+
+------------------------------------------------------
+
+R7:
+
+lo0.7 = 7.7.7.7/32 in unit 7
+ge-4/3/7.0 = address 192.168.9.2/30 in unit 0
+ge-4/3/3.0 = address 192.168.7.1/30 in unit 0
+
+Interface information: family inet, iso, mpls
+protocols: rsvp, mpls, isis, icmp-tunneling, ldp
+router-id: 7.7.7.7
+
+------------------------------------------------------
+
+
+
+ISIS doesot run on IP, identifier. 
+inet for ipv4
+mpls (default doesnt accept everything so we need to configure so it will accept these kinds of packets)\
+
+
+figure out label tag and status 

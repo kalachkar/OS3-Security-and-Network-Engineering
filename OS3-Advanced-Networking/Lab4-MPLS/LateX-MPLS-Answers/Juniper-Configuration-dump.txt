@@ -1,0 +1,890 @@
+# JSON format
+student@chico> show configuration 
+## Last commit: 2018-03-08 16:36:35 UTC by sne
+version 10.4R8.5;
+groups {
+    re0 {
+        system {
+            host-name re0-chico;
+        }
+        interfaces {
+            fxp0 {
+                unit 0 {
+                    family inet {
+                        address 10.0.1.22/24 {
+                            master-only;
+                        }
+                        address 10.0.1.20/24;
+                    }
+                    family inet6 {
+                        address fd42:1234:678::1/48 {
+                            master-only;
+                        }
+                        address fd42:1234:678::2/48;
+                    }
+                }
+            }                           
+        }
+    }
+    re1 {
+        system {
+            host-name re1-chico;
+        }
+        interfaces {
+            fxp0 {
+                unit 0 {
+                    family inet {
+                        address 10.0.1.22/24 {
+                            master-only;
+                        }
+                        address 10.0.1.21/24;
+                    }
+                    family inet6 {
+                        address fd42:1234:678::1/48 {
+                            master-only;
+                        }
+                        address fd42:1234:678::3/48;
+                    }
+                }
+            }                           
+        }
+    }
+}
+apply-groups [ re0 re1 ];
+system {
+    host-name chico;
+    domain-name os3.nl;
+    authentication-order password;
+    location {
+        country-code NL;
+        building "Science Park 904 - B";
+    }
+    root-authentication {
+        encrypted-password /* SECRET-DATA */; ## SECRET-DATA
+    }
+    login {
+        message "\n\n==================================\n\nChico.os3.nl\nUvA OS3 Testbed Juniper\nScience Park 904\nAmsterdam/The Netherlands";
+        class uva {
+            permissions [ clear network view view-configuration ];
+        }
+        user remote {
+            uid 2002;                   
+            class super-user;
+            authentication {
+                encrypted-password /* SECRET-DATA */; ## SECRET-DATA
+            }
+        }
+        user sne {
+            full-name "SNE labstudent account";
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password /* SECRET-DATA */; ## SECRET-DATA
+            }
+        }
+        user student {
+            uid 2018;
+            class uva;
+            authentication {
+                encrypted-password /* SECRET-DATA */; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        inactive: ftp;                  
+        ssh;
+        telnet;
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+    commit synchronize;
+}
+logical-systems {
+    R1 {
+        interfaces {
+            ge-4/0/0 {
+                unit 0 {
+                    family inet {       
+                        address 192.168.2.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/0/2 {
+                unit 0 {
+                    family inet {
+                        address 192.168.3.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/0/4 {
+                unit 0 {
+                    family inet {
+                        address 192.168.5.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }                       
+            }
+            lo0 {
+                unit 1 {
+                    family inet {
+                        address 1.1.1.1/32 {
+                            primary;
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0010.0100.1001.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                traffic-engineering bgp-igp;
+                icmp-tunneling;
+                label-switched-path toR6 {
+                    to 6.6.6.6;         
+                    ldp-tunneling;
+                    no-cspf;
+                }
+                label-switched-path toR7 {
+                    to 7.7.7.7;
+                    install 145.125.0.0/24 active;
+                    bandwidth 500m;
+                    no-cspf;
+                    primary VISIT-R5;
+                }
+                path VISIT-R5 {
+                    5.5.5.5 loose;
+                }
+                interface all;
+            }
+            isis {
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/0/0.0 {
+                    point-to-point;
+                }
+                interface ge-4/0/2.0 {  
+                    point-to-point;
+                }
+                interface ge-4/0/4.0 {
+                    point-to-point;
+                }
+                interface lo0.1 {
+                    passive;
+                }
+            }
+            ldp {
+                interface ge-4/0/0.0;
+                interface lo0.1;
+            }
+        }
+        routing-options {
+            router-id 1.1.1.1;
+        }
+    }
+    R2 {
+        interfaces {
+            ge-4/0/1 {
+                unit 0 {
+                    family inet {       
+                        address 192.168.2.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/0/6 {
+                unit 0 {
+                    family inet {
+                        address 192.168.4.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 2 {
+                    family inet {
+                        address 2.2.2.2/32 {
+                            primary;
+                        }
+                    }
+                    family iso {        
+                        address 49.0001.0020.0200.2002.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;
+                interface all;
+            }
+            isis {
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/0/1.0 {
+                    point-to-point;
+                }
+                interface ge-4/0/6.0 {
+                    point-to-point;
+                }                       
+                interface lo0.2 {
+                    passive;
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        routing-options {
+            router-id 2.2.2.2;
+        }
+    }
+    R3 {
+        interfaces {
+            ge-4/0/7 {
+                unit 0 {
+                    family inet {
+                        address 192.168.4.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }                           
+            ge-4/0/8 {
+                unit 0 {
+                    family inet {
+                        address 192.168.6.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 3 {
+                    family inet {
+                        address 3.3.3.3/32 {
+                            primary;
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0030.0300.3003.00;
+                    }
+                }
+            }
+        }
+        protocols {                     
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;
+                label-switched-path toR4 {
+                    to 4.4.4.4;
+                    ldp-tunneling;
+                    no-cspf;
+                }
+                interface all;
+            }
+            isis {
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/0/7.0 {
+                    point-to-point;
+                }
+                interface ge-4/0/8.0 {
+                    point-to-point;
+                }
+                interface lo0.3 {       
+                    passive;
+                }
+            }
+            ldp {
+                interface ge-4/0/7.0;
+                interface lo0.3;
+            }
+        }
+        routing-options {
+            router-id 3.3.3.3;
+        }
+    }
+    R4 {
+        interfaces {
+            ge-4/0/3 {
+                unit 0 {
+                    family inet {
+                        address 192.168.3.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }                           
+            ge-4/0/9 {
+                unit 0 {
+                    family inet {
+                        address 192.168.6.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/3/0 {
+                unit 0 {
+                    family inet {
+                        address 192.168.8.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/3/2 {
+                unit 0 {
+                    family inet {
+                        address 192.168.7.2/30;
+                    }                   
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 4 {
+                    family inet {
+                        address 4.4.4.4/32 {
+                            primary;
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0040.0400.4004.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;         
+                label-switched-path toR3 {
+                    to 3.3.3.3;
+                    ldp-tunneling;
+                    no-cspf;
+                }
+                interface all;
+            }
+            isis {
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/0/3.0 {
+                    point-to-point;
+                }
+                interface ge-4/0/9.0 {
+                    point-to-point;
+                }
+                interface ge-4/3/0.0 {
+                    point-to-point;
+                }
+                interface ge-4/3/2.0 {
+                    point-to-point;
+                }                       
+                interface lo0.4 {
+                    passive;
+                }
+            }
+            ldp {
+                interface ge-4/3/0.0;
+                interface ge-4/3/2.0;
+                interface lo0.4;
+            }
+        }
+        routing-options {
+            router-id 4.4.4.4;
+        }
+    }
+    R5 {
+        interfaces {
+            ge-4/3/1 {
+                unit 0 {
+                    family inet {
+                        address 192.168.8.1/30;
+                    }
+                    family iso;
+                    family mpls;        
+                }
+            }
+            ge-4/3/4 {
+                unit 0 {
+                    family inet {
+                        address 192.168.10.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/3/6 {
+                unit 0 {
+                    family inet {
+                        address 192.168.9.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 5 {
+                    family inet {       
+                        address 5.5.5.5/32 {
+                            primary;
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0050.0500.5005.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;
+                interface all;
+            }
+            isis {
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/3/1.0 {  
+                    point-to-point;
+                }
+                interface ge-4/3/4.0 {
+                    ldp-synchronization;
+                    point-to-point;
+                }
+                interface ge-4/3/6.0 {
+                    point-to-point;
+                }
+                interface lo0.5 {
+                    passive;
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        routing-options {
+            router-id 5.5.5.5;
+        }
+    }
+    R6 {
+        interfaces {                    
+            ge-4/0/5 {
+                unit 0 {
+                    family inet {
+                        address 192.168.5.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/3/5 {
+                unit 0 {
+                    family inet {
+                        address 192.168.10.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 6 {
+                    family inet {
+                        address 6.6.6.6/32 {
+                            primary;    
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0060.0600.6006.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;
+                label-switched-path toR1 {
+                    to 1.1.1.1;
+                    ldp-tunneling;
+                    no-cspf;
+                }
+                interface all;
+            }
+            isis {
+                overload timeout 100;   
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/0/5.0 {
+                    point-to-point;
+                }
+                interface ge-4/3/5.0 {
+                    point-to-point;
+                }
+                interface lo0.6 {
+                    passive;
+                }
+            }
+            ldp {
+                interface ge-4/3/5.0;
+                interface lo0.6;
+            }
+        }
+        routing-options {
+            router-id 6.6.6.6;
+        }
+    }
+    R7 {
+        interfaces {                    
+            ge-4/3/3 {
+                unit 0 {
+                    family inet {
+                        address 192.168.7.1/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            ge-4/3/7 {
+                unit 0 {
+                    family inet {
+                        address 192.168.9.2/30;
+                    }
+                    family iso;
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 7 {
+                    family inet {
+                        address 7.7.7.7/32 {
+                            primary;    
+                        }
+                    }
+                    family iso {
+                        address 49.0001.0070.0700.7007.00;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface all;
+            }
+            mpls {
+                icmp-tunneling;
+                interface all;
+            }
+            isis {
+                export putintoisis;
+                overload timeout 100;
+                level 1 disable;
+                level 2 wide-metrics-only;
+                interface ge-4/3/3.0 {
+                    point-to-point;     
+                }
+                interface ge-4/3/7.0 {
+                    point-to-point;
+                }
+                interface lo0.7 {
+                    passive;
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        policy-options {
+            policy-statement putintoisis {
+                term 1 {
+                    from protocol static;
+                    then accept;
+                }
+            }
+        }
+        routing-options {
+            static {
+                route 145.125.0.0/16 discard;
+            }
+            router-id 7.7.7.7;
+        }
+    }
+}
+interfaces {
+    lo0 {
+        unit 0 {
+            family inet {
+                address 127.0.0.1/32;
+            }
+        }
+    }
+}
+
+
+# set Format
+
+student@chico> show configuration | display set 
+set version 10.4R8.5
+set groups re0 system host-name re0-chico
+set groups re0 interfaces fxp0 unit 0 family inet address 10.0.1.22/24 master-only
+set groups re0 interfaces fxp0 unit 0 family inet address 10.0.1.20/24
+set groups re0 interfaces fxp0 unit 0 family inet6 address fd42:1234:678::1/48 master-only
+set groups re0 interfaces fxp0 unit 0 family inet6 address fd42:1234:678::2/48
+set groups re1 system host-name re1-chico
+set groups re1 interfaces fxp0 unit 0 family inet address 10.0.1.22/24 master-only
+set groups re1 interfaces fxp0 unit 0 family inet address 10.0.1.21/24
+set groups re1 interfaces fxp0 unit 0 family inet6 address fd42:1234:678::1/48 master-only
+set groups re1 interfaces fxp0 unit 0 family inet6 address fd42:1234:678::3/48
+set apply-groups re0
+set apply-groups re1
+set system host-name chico
+set system domain-name os3.nl
+set system authentication-order password
+set system location country-code NL
+set system location building "Science Park 904 - B"
+set system root-authentication encrypted-password /* SECRET-DATA */
+set system login message "\n\n==================================\n\nChico.os3.nl\nUvA OS3 Testbed Juniper\nScience Park 904\nAmsterdam/The Netherlands"
+set system login class uva permissions clear
+set system login class uva permissions network
+set system login class uva permissions view
+set system login class uva permissions view-configuration
+set system login user remote uid 2002
+set system login user remote class super-user
+set system login user remote authentication encrypted-password /* SECRET-DATA */
+set system login user sne full-name "SNE labstudent account"
+set system login user sne uid 2000
+set system login user sne class super-user
+set system login user sne authentication encrypted-password /* SECRET-DATA */
+set system login user student uid 2018
+set system login user student class uva
+set system login user student authentication encrypted-password /* SECRET-DATA */
+set system services ftp
+deactivate system services ftp
+set system services ssh
+set system services telnet
+set system syslog user * any emergency
+set system syslog file messages any notice
+set system syslog file messages authorization info
+set system syslog file interactive-commands interactive-commands any
+set system commit synchronize
+set logical-systems R1 interfaces ge-4/0/0 unit 0 family inet address 192.168.2.1/30
+set logical-systems R1 interfaces ge-4/0/0 unit 0 family iso
+set logical-systems R1 interfaces ge-4/0/0 unit 0 family mpls
+set logical-systems R1 interfaces ge-4/0/2 unit 0 family inet address 192.168.3.1/30
+set logical-systems R1 interfaces ge-4/0/2 unit 0 family iso
+set logical-systems R1 interfaces ge-4/0/2 unit 0 family mpls
+set logical-systems R1 interfaces ge-4/0/4 unit 0 family inet address 192.168.5.1/30
+set logical-systems R1 interfaces ge-4/0/4 unit 0 family iso
+set logical-systems R1 interfaces ge-4/0/4 unit 0 family mpls
+set logical-systems R1 interfaces lo0 unit 1 family inet address 1.1.1.1/32 primary
+set logical-systems R1 interfaces lo0 unit 1 family iso address 49.0001.0010.0100.1001.00
+set logical-systems R1 protocols rsvp interface all
+set logical-systems R1 protocols mpls traffic-engineering bgp-igp
+set logical-systems R1 protocols mpls icmp-tunneling
+set logical-systems R1 protocols mpls label-switched-path toR6 to 6.6.6.6
+set logical-systems R1 protocols mpls label-switched-path toR6 ldp-tunneling
+set logical-systems R1 protocols mpls label-switched-path toR6 no-cspf
+set logical-systems R1 protocols mpls label-switched-path toR7 to 7.7.7.7
+set logical-systems R1 protocols mpls label-switched-path toR7 install 145.125.0.0/24 active
+set logical-systems R1 protocols mpls label-switched-path toR7 bandwidth 500m
+set logical-systems R1 protocols mpls label-switched-path toR7 no-cspf
+set logical-systems R1 protocols mpls label-switched-path toR7 primary VISIT-R5
+set logical-systems R1 protocols mpls path VISIT-R5 5.5.5.5 loose
+set logical-systems R1 protocols mpls interface all
+set logical-systems R1 protocols isis overload timeout 100
+set logical-systems R1 protocols isis level 1 disable
+set logical-systems R1 protocols isis level 2 wide-metrics-only
+set logical-systems R1 protocols isis interface ge-4/0/0.0 point-to-point
+set logical-systems R1 protocols isis interface ge-4/0/2.0 point-to-point
+set logical-systems R1 protocols isis interface ge-4/0/4.0 point-to-point
+set logical-systems R1 protocols isis interface lo0.1 passive
+set logical-systems R1 protocols ldp interface ge-4/0/0.0
+set logical-systems R1 protocols ldp interface lo0.1
+set logical-systems R1 routing-options router-id 1.1.1.1
+set logical-systems R2 interfaces ge-4/0/1 unit 0 family inet address 192.168.2.2/30
+set logical-systems R2 interfaces ge-4/0/1 unit 0 family iso
+set logical-systems R2 interfaces ge-4/0/1 unit 0 family mpls
+set logical-systems R2 interfaces ge-4/0/6 unit 0 family inet address 192.168.4.1/30
+set logical-systems R2 interfaces ge-4/0/6 unit 0 family iso
+set logical-systems R2 interfaces ge-4/0/6 unit 0 family mpls
+set logical-systems R2 interfaces lo0 unit 2 family inet address 2.2.2.2/32 primary
+set logical-systems R2 interfaces lo0 unit 2 family iso address 49.0001.0020.0200.2002.00
+set logical-systems R2 protocols rsvp interface all
+set logical-systems R2 protocols mpls icmp-tunneling
+set logical-systems R2 protocols mpls interface all
+set logical-systems R2 protocols isis overload timeout 100
+set logical-systems R2 protocols isis level 1 disable
+set logical-systems R2 protocols isis level 2 wide-metrics-only
+set logical-systems R2 protocols isis interface ge-4/0/1.0 point-to-point
+set logical-systems R2 protocols isis interface ge-4/0/6.0 point-to-point
+set logical-systems R2 protocols isis interface lo0.2 passive
+set logical-systems R2 protocols ldp interface all
+set logical-systems R2 routing-options router-id 2.2.2.2
+set logical-systems R3 interfaces ge-4/0/7 unit 0 family inet address 192.168.4.2/30
+set logical-systems R3 interfaces ge-4/0/7 unit 0 family iso
+set logical-systems R3 interfaces ge-4/0/7 unit 0 family mpls
+set logical-systems R3 interfaces ge-4/0/8 unit 0 family inet address 192.168.6.1/30
+set logical-systems R3 interfaces ge-4/0/8 unit 0 family iso
+set logical-systems R3 interfaces ge-4/0/8 unit 0 family mpls
+set logical-systems R3 interfaces lo0 unit 3 family inet address 3.3.3.3/32 primary
+set logical-systems R3 interfaces lo0 unit 3 family iso address 49.0001.0030.0300.3003.00
+set logical-systems R3 protocols rsvp interface all
+set logical-systems R3 protocols mpls icmp-tunneling
+set logical-systems R3 protocols mpls label-switched-path toR4 to 4.4.4.4
+set logical-systems R3 protocols mpls label-switched-path toR4 ldp-tunneling
+set logical-systems R3 protocols mpls label-switched-path toR4 no-cspf
+set logical-systems R3 protocols mpls interface all
+set logical-systems R3 protocols isis overload timeout 100
+set logical-systems R3 protocols isis level 1 disable
+set logical-systems R3 protocols isis level 2 wide-metrics-only
+set logical-systems R3 protocols isis interface ge-4/0/7.0 point-to-point
+set logical-systems R3 protocols isis interface ge-4/0/8.0 point-to-point
+set logical-systems R3 protocols isis interface lo0.3 passive
+set logical-systems R3 protocols ldp interface ge-4/0/7.0
+set logical-systems R3 protocols ldp interface lo0.3
+set logical-systems R3 routing-options router-id 3.3.3.3
+set logical-systems R4 interfaces ge-4/0/3 unit 0 family inet address 192.168.3.2/30
+set logical-systems R4 interfaces ge-4/0/3 unit 0 family iso
+set logical-systems R4 interfaces ge-4/0/3 unit 0 family mpls
+set logical-systems R4 interfaces ge-4/0/9 unit 0 family inet address 192.168.6.2/30
+set logical-systems R4 interfaces ge-4/0/9 unit 0 family iso
+set logical-systems R4 interfaces ge-4/0/9 unit 0 family mpls
+set logical-systems R4 interfaces ge-4/3/0 unit 0 family inet address 192.168.8.2/30
+set logical-systems R4 interfaces ge-4/3/0 unit 0 family iso
+set logical-systems R4 interfaces ge-4/3/0 unit 0 family mpls
+set logical-systems R4 interfaces ge-4/3/2 unit 0 family inet address 192.168.7.2/30
+set logical-systems R4 interfaces ge-4/3/2 unit 0 family iso
+set logical-systems R4 interfaces ge-4/3/2 unit 0 family mpls
+set logical-systems R4 interfaces lo0 unit 4 family inet address 4.4.4.4/32 primary
+set logical-systems R4 interfaces lo0 unit 4 family iso address 49.0001.0040.0400.4004.00
+set logical-systems R4 protocols rsvp interface all
+set logical-systems R4 protocols mpls icmp-tunneling
+set logical-systems R4 protocols mpls label-switched-path toR3 to 3.3.3.3
+set logical-systems R4 protocols mpls label-switched-path toR3 ldp-tunneling
+set logical-systems R4 protocols mpls label-switched-path toR3 no-cspf
+set logical-systems R4 protocols mpls interface all
+set logical-systems R4 protocols isis overload timeout 100
+set logical-systems R4 protocols isis level 1 disable
+set logical-systems R4 protocols isis level 2 wide-metrics-only
+set logical-systems R4 protocols isis interface ge-4/0/3.0 point-to-point
+set logical-systems R4 protocols isis interface ge-4/0/9.0 point-to-point
+set logical-systems R4 protocols isis interface ge-4/3/0.0 point-to-point
+set logical-systems R4 protocols isis interface ge-4/3/2.0 point-to-point
+set logical-systems R4 protocols isis interface lo0.4 passive
+set logical-systems R4 protocols ldp interface ge-4/3/0.0
+set logical-systems R4 protocols ldp interface ge-4/3/2.0
+set logical-systems R4 protocols ldp interface lo0.4
+set logical-systems R4 routing-options router-id 4.4.4.4
+set logical-systems R5 interfaces ge-4/3/1 unit 0 family inet address 192.168.8.1/30
+set logical-systems R5 interfaces ge-4/3/1 unit 0 family iso
+set logical-systems R5 interfaces ge-4/3/1 unit 0 family mpls
+set logical-systems R5 interfaces ge-4/3/4 unit 0 family inet address 192.168.10.2/30
+set logical-systems R5 interfaces ge-4/3/4 unit 0 family iso
+set logical-systems R5 interfaces ge-4/3/4 unit 0 family mpls
+set logical-systems R5 interfaces ge-4/3/6 unit 0 family inet address 192.168.9.1/30
+set logical-systems R5 interfaces ge-4/3/6 unit 0 family iso
+set logical-systems R5 interfaces ge-4/3/6 unit 0 family mpls
+set logical-systems R5 interfaces lo0 unit 5 family inet address 5.5.5.5/32 primary
+set logical-systems R5 interfaces lo0 unit 5 family iso address 49.0001.0050.0500.5005.00
+set logical-systems R5 protocols rsvp interface all
+set logical-systems R5 protocols mpls icmp-tunneling
+set logical-systems R5 protocols mpls interface all
+set logical-systems R5 protocols isis overload timeout 100
+set logical-systems R5 protocols isis level 1 disable
+set logical-systems R5 protocols isis level 2 wide-metrics-only
+set logical-systems R5 protocols isis interface ge-4/3/1.0 point-to-point
+set logical-systems R5 protocols isis interface ge-4/3/4.0 ldp-synchronization
+set logical-systems R5 protocols isis interface ge-4/3/4.0 point-to-point
+set logical-systems R5 protocols isis interface ge-4/3/6.0 point-to-point
+set logical-systems R5 protocols isis interface lo0.5 passive
+set logical-systems R5 protocols ldp interface all
+set logical-systems R5 routing-options router-id 5.5.5.5
+set logical-systems R6 interfaces ge-4/0/5 unit 0 family inet address 192.168.5.2/30
+set logical-systems R6 interfaces ge-4/0/5 unit 0 family iso
+set logical-systems R6 interfaces ge-4/0/5 unit 0 family mpls
+set logical-systems R6 interfaces ge-4/3/5 unit 0 family inet address 192.168.10.1/30
+set logical-systems R6 interfaces ge-4/3/5 unit 0 family iso
+set logical-systems R6 interfaces ge-4/3/5 unit 0 family mpls
+set logical-systems R6 interfaces lo0 unit 6 family inet address 6.6.6.6/32 primary
+set logical-systems R6 interfaces lo0 unit 6 family iso address 49.0001.0060.0600.6006.00
+set logical-systems R6 protocols rsvp interface all
+set logical-systems R6 protocols mpls icmp-tunneling
+set logical-systems R6 protocols mpls label-switched-path toR1 to 1.1.1.1
+set logical-systems R6 protocols mpls label-switched-path toR1 ldp-tunneling
+set logical-systems R6 protocols mpls label-switched-path toR1 no-cspf
+set logical-systems R6 protocols mpls interface all
+set logical-systems R6 protocols isis overload timeout 100
+set logical-systems R6 protocols isis level 1 disable
+set logical-systems R6 protocols isis level 2 wide-metrics-only
+set logical-systems R6 protocols isis interface ge-4/0/5.0 point-to-point
+set logical-systems R6 protocols isis interface ge-4/3/5.0 point-to-point
+set logical-systems R6 protocols isis interface lo0.6 passive
+set logical-systems R6 protocols ldp interface ge-4/3/5.0
+set logical-systems R6 protocols ldp interface lo0.6
+set logical-systems R6 routing-options router-id 6.6.6.6
+set logical-systems R7 interfaces ge-4/3/3 unit 0 family inet address 192.168.7.1/30
+set logical-systems R7 interfaces ge-4/3/3 unit 0 family iso
+set logical-systems R7 interfaces ge-4/3/3 unit 0 family mpls
+set logical-systems R7 interfaces ge-4/3/7 unit 0 family inet address 192.168.9.2/30
+set logical-systems R7 interfaces ge-4/3/7 unit 0 family iso
+set logical-systems R7 interfaces ge-4/3/7 unit 0 family mpls
+set logical-systems R7 interfaces lo0 unit 7 family inet address 7.7.7.7/32 primary
+set logical-systems R7 interfaces lo0 unit 7 family iso address 49.0001.0070.0700.7007.00
+set logical-systems R7 protocols rsvp interface all
+set logical-systems R7 protocols mpls icmp-tunneling
+set logical-systems R7 protocols mpls interface all
+set logical-systems R7 protocols isis export putintoisis
+set logical-systems R7 protocols isis overload timeout 100
+set logical-systems R7 protocols isis level 1 disable
+set logical-systems R7 protocols isis level 2 wide-metrics-only
+set logical-systems R7 protocols isis interface ge-4/3/3.0 point-to-point
+set logical-systems R7 protocols isis interface ge-4/3/7.0 point-to-point
+set logical-systems R7 protocols isis interface lo0.7 passive
+set logical-systems R7 protocols ldp interface all
+set logical-systems R7 policy-options policy-statement putintoisis term 1 from protocol static
+set logical-systems R7 policy-options policy-statement putintoisis term 1 then accept
+set logical-systems R7 routing-options static route 145.125.0.0/16 discard
+set logical-systems R7 routing-options router-id 7.7.7.7
+set interfaces lo0 unit 0 family inet address 127.0.0.1/32
+
+
+
