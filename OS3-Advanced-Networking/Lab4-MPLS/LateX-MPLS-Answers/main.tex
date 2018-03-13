@@ -44,16 +44,26 @@ We must display the following: \textbf{addresses, prefixes, interface details, r
 \label{sec:task2}
 
 
-\subsection{Question - How is MPLS configured on the routers? Which commands were used to set it up?}
+\subsection{Question 1 - How is MPLS configured on the routers? Which commands were used to set it up?}
 
-In order to configure MPLS on the routers: \\
+In order to configure MPLS on the routers, first we enable MPLS on all the router interfaces:\\
 
-\textbf{1- MPLS protocol is enabled on logical-systems on routers (Some have configured path and some only enable it). }
+\textbf{Then, MPLS enabled on all interfaces for each router.} Example configuration on router 1:
+
 
 \begin{verbatim}
+
+set logical-systems R1 interfaces ge-4/0/0 unit 0 family mpls
+set logical-systems R1 interfaces ge-4/0/2 unit 0 family mpls
+set logical-systems R1 interfaces ge-4/0/4 unit 0 family mpls
+\end{verbatim}
+
+
+\textbf{Then MPLS protocol is enabled on logical-systems on routers} (Some have with path configured and some without). ICMP tunneling is enabled on all interfaces, for debugging purposes. \footnote{http://66.129.228.18/documentation/en_US/junos12.1/topics/usage-guidelines/mpls-configuring-icmp-message-tunneling.html}
+
 Path not configured example configuration:
 
-
+\begin{verbatim}
 set logical-systems R2 protocols mpls icmp-tunneling
 set logical-systems R2 protocols mpls interface all
 
@@ -64,8 +74,6 @@ set logical-systems R7 protocols mpls icmp-tunneling
 set logical-systems R7 protocols mpls interface all  
     
 \end{verbatim}
-
-
 
 
 \begin{verbatim}
@@ -106,46 +114,12 @@ set logical-systems R6 protocols mpls interface all
 \end{verbatim}
 
 
-\textbf{Then, MPLS enabled on all interfaces for each router.}
 
+\subsection{Question 2 - Which routing protocol is configured? List the relevant details from the configuration for that protocol and explain what they mean?}
 
-\begin{verbatim}
-Example configuration on all routers:
-
-set logical-systems R1 interfaces ge-4/0/0 unit 0 family mpls
-set logical-systems R1 interfaces ge-4/0/2 unit 0 family mpls
-set logical-systems R1 interfaces ge-4/0/4 unit 0 family mpls
-
-set logical-systems R2 interfaces ge-4/0/1 unit 0 family mpls
-set logical-systems R2 interfaces ge-4/0/6 unit 0 family mpls
-
-set logical-systems R3 interfaces ge-4/0/7 unit 0 family mpls
-set logical-systems R3 interfaces ge-4/0/8 unit 0 family mpls
-
-set logical-systems R4 interfaces ge-4/0/3 unit 0 family mpls
-set logical-systems R4 interfaces ge-4/0/9 unit 0 family mpls
-set logical-systems R4 interfaces ge-4/3/0 unit 0 family mpls
-set logical-systems R4 interfaces ge-4/3/2 unit 0 family mpls
-
-set logical-systems R5 interfaces ge-4/3/1 unit 0 family mpls
-set logical-systems R5 interfaces ge-4/3/4 unit 0 family mpls
-set logical-systems R5 interfaces ge-4/3/6 unit 0 family mpls
-
-set logical-systems R6 interfaces ge-4/0/5 unit 0 family mpls
-set logical-systems R6 interfaces ge-4/3/5 unit 0 family mpls
-
-set logical-systems R7 interfaces ge-4/3/3 unit 0 family mpls
-set logical-systems R7 interfaces ge-4/3/7 unit 0 family mpls
-\end{verbatim}
-
-
-
-\subsection{Question - Which routing protocol is configured? List the relevant details from the configuration for that protocol and explain what they mean?}
-
-The routing protocol that configured is \textbf{\textit{IS-IS}}. The relevant details from the configuration:
+The routing protocol that configured is \textbf{IS-IS}. The relevant details from the configuration for Router 1:
 
 \begin{verbatim}
-
 set logical-systems R1 interfaces ge-4/0/0 unit 0 family iso
 set logical-systems R1 interfaces ge-4/0/2 unit 0 family iso
 set logical-systems R1 interfaces ge-4/0/4 unit 0 family iso
@@ -157,82 +131,10 @@ set logical-systems R1 protocols isis interface ge-4/0/0.0 point-to-point
 set logical-systems R1 protocols isis interface ge-4/0/2.0 point-to-point
 set logical-systems R1 protocols isis interface ge-4/0/4.0 point-to-point
 set logical-systems R1 protocols isis interface lo0.1 passive
-
-set logical-systems R2 interfaces ge-4/0/1 unit 0 family iso
-set logical-systems R2 interfaces ge-4/0/6 unit 0 family iso
-set logical-systems R2 interfaces lo0 unit 2 family iso address 49.0001.0020.0200.2002.00
-set logical-systems R2 protocols isis overload timeout 100
-set logical-systems R2 protocols isis level 1 disable
-set logical-systems R2 protocols isis level 2 wide-metrics-only
-set logical-systems R2 protocols isis interface ge-4/0/1.0 point-to-point
-set logical-systems R2 protocols isis interface ge-4/0/6.0 point-to-point
-set logical-systems R2 protocols isis interface lo0.2 passive
-
-set logical-systems R3 interfaces ge-4/0/7 unit 0 family iso
-set logical-systems R3 interfaces ge-4/0/8 unit 0 family iso
-set logical-systems R3 interfaces lo0 unit 3 family iso address 49.0001.0030.0300.3003.00
-set logical-systems R3 protocols isis overload timeout 100
-set logical-systems R3 protocols isis level 1 disable
-set logical-systems R3 protocols isis level 2 wide-metrics-only
-set logical-systems R3 protocols isis interface ge-4/0/7.0 point-to-point
-set logical-systems R3 protocols isis interface ge-4/0/8.0 point-to-point
-set logical-systems R3 protocols isis interface lo0.3 passive
-
-set logical-systems R4 interfaces ge-4/0/3 unit 0 family iso
-set logical-systems R4 interfaces ge-4/0/9 unit 0 family iso
-set logical-systems R4 interfaces ge-4/3/0 unit 0 family iso
-set logical-systems R4 interfaces ge-4/3/2 unit 0 family iso
-set logical-systems R4 interfaces lo0 unit 4 family iso address 49.0001.0040.0400.4004.00
-set logical-systems R4 protocols isis overload timeout 100
-set logical-systems R4 protocols isis level 1 disable
-set logical-systems R4 protocols isis level 2 wide-metrics-only
-set logical-systems R4 protocols isis interface ge-4/0/3.0 point-to-point
-set logical-systems R4 protocols isis interface ge-4/0/9.0 point-to-point
-set logical-systems R4 protocols isis interface ge-4/3/0.0 point-to-point
-set logical-systems R4 protocols isis interface ge-4/3/2.0 point-to-point
-set logical-systems R4 protocols isis interface lo0.4 passive
-
-
-
-set logical-systems R5 interfaces ge-4/3/1 unit 0 family iso
-set logical-systems R5 interfaces ge-4/3/4 unit 0 family iso
-set logical-systems R5 interfaces ge-4/3/6 unit 0 family iso
-set logical-systems R5 interfaces lo0 unit 5 family iso address 49.0001.0050.0500.5005.00
-set logical-systems R5 protocols isis overload timeout 100
-set logical-systems R5 protocols isis level 1 disable
-set logical-systems R5 protocols isis level 2 wide-metrics-only
-set logical-systems R5 protocols isis interface ge-4/3/1.0 point-to-point
-set logical-systems R5 protocols isis interface ge-4/3/4.0 ldp-synchronization
-set logical-systems R5 protocols isis interface ge-4/3/4.0 point-to-point
-set logical-systems R5 protocols isis interface ge-4/3/6.0 point-to-point
-set logical-systems R5 protocols isis interface lo0.5 passive
-
-
-set logical-systems R6 interfaces ge-4/0/5 unit 0 family iso
-set logical-systems R6 interfaces ge-4/3/5 unit 0 family iso
-set logical-systems R6 interfaces lo0 unit 6 family iso address 49.0001.0060.0600.6006.00
-set logical-systems R6 protocols isis overload timeout 100
-set logical-systems R6 protocols isis level 1 disable
-set logical-systems R6 protocols isis level 2 wide-metrics-only
-set logical-systems R6 protocols isis interface ge-4/0/5.0 point-to-point
-set logical-systems R6 protocols isis interface ge-4/3/5.0 point-to-point
-set logical-systems R6 protocols isis interface lo0.6 passive
-
-
-set logical-systems R7 interfaces ge-4/3/3 unit 0 family iso
-set logical-systems R7 interfaces ge-4/3/7 unit 0 family iso
-set logical-systems R7 interfaces lo0 unit 7 family iso address 49.0001.0070.0700.7007.00
-set logical-systems R7 protocols isis export putintoisis
-set logical-systems R7 protocols isis overload timeout 100
-set logical-systems R7 protocols isis level 1 disable
-set logical-systems R7 protocols isis level 2 wide-metrics-only
-set logical-systems R7 protocols isis interface ge-4/3/3.0 point-to-point
-set logical-systems R7 protocols isis interface ge-4/3/7.0 point-to-point
-set logical-systems R7 protocols isis interface lo0.7 passive
 \end{verbatim}
 
 
-\textbf{Explanation:}
+\subsubsection{Explanation of commands}
 
 Following command on all routers means (own IS-IS address) It contains the following Area Address, System ID, and NSAP Selector.
 
@@ -240,29 +142,30 @@ Following command on all routers means (own IS-IS address) It contains the follo
     Example: set logical-systems R1 interfaces lo0 unit 1 family iso address 49.0001.0010.0100.1001.00
 \end{verbatim}
 
-Following command on all routers means the IS-IS Protocol is enabled on the logical tunnel interfaces with the family iso statement.
+Following command on all routers means that the specific interface is able to receive ISIS PDUs.
 
 \begin{verbatim}
     set logical-systems R# interfaces ge-4/X/X unit Z family iso 
 \end{verbatim}
 
 
-Following command on all routers means the router would advertise max metric for a duration of 100 sec after the OSPF startup.
+Following command on all routers means the router would advertise max metric for a duration of 100 sec after the router startup.
 
 \begin{verbatim}    
     set logical-systems R# protocols isis overload timeout 100
 \end{verbatim}
 
+ISIS can be working on multiple (two) levels. This is to support protocol stability: the different levels are segregated, such like OSPF areas. In this particular case, all routers are configured to be level 2 routers, as the topology isn't so complicated.
 
-
-Following command on all routers means Disable IS-IS on the routing device, on an interface, or on a level. By default, IS-IS is enabled for IS-IS areas on all interfaces on which the ISO protocol family is enabled. To disable IS-IS at any particular level on an interface, include the disable statement.
+%Following command on all routers means Disable IS-IS on the routing device, on an interface, or on a level. By default, IS-IS is enabled for IS-IS areas on all interfaces on which the ISO protocol family is enabled. To disable IS-IS at any particular level on an interface, include the disable statement.
 
 \begin{verbatim}
      set logical-systems R# protocols isis level 1 disable
 \end{verbatim}
 
 
-Following command on all routers means To configure IS-IS to generate only the new pair of TLVs and thus to allow the wider range of metric values. When wide-metrics-only is configured for a level, Junos suppresses the generation of narrow-style-metric TLV`s.
+
+Following command on all routers means to configure IS-IS to generate only the new pair of TLVs instead of the originals, and thus allow a wider range of metric values suitable for traffic engineering. When wide-metrics-only is configured for a level, Junos suppresses the generation of narrow-style-metric TLV`s, imporving performance.
 
 \begin{verbatim}    
     set logical-systems R# protocols isis level 2 wide-metrics-only
@@ -275,7 +178,7 @@ Following command on all routers means configure an IS-IS interface to behave li
 \end{verbatim}
 
 
-Following command on all routers means Advertise the direct interface addresses on an interface or into a level on the interface without actually running IS-IS on that interface or level. This statement effectively prevents IS-IS from running on the interface. 
+The following command effectively prevents IS-IS from running on the interface. \textit{This command is configured on all the loopback interfaces, where it is unnecessary to run routing.}
 
 \begin{verbatim}    
     set logical-systems R# protocols isis interface lo0.X passive
@@ -291,49 +194,18 @@ Following command means that the Logical system R7 has an additional policy stat
 \end{verbatim}
 
 
+\subsection{Question 3 - Between which routers are LDP sessions established? How is this configured? Which LSPs have been set up with LDP? List the relevant details of these LSPs to explain how you discovered this. (Pick one of the LSPs to explain all details about it.) Look at the label database and the FECs and check the routing table(s).}
 
 
-\subsection{Question - Between which routers are LDP sessions established? How is this configured? Which LSPs have been set up with LDP? List the relevant details of these LSPs to explain how you discovered this. (Pick one of the LSPs to explain all details about it.) Look at the label database and the FECs and check the routing table(s).}
-
-\textbf{The routers interfaces that LDP is configured on are the following:}
+The following LDP tunnels are configured within the system (these links are also not using LDP):
 
 \begin{verbatim}
-R1:
-Lo0.1 = 1.1.1.1/32 in unit 1 (ldp)
-ge-4/0/0.0 = address 192.168.2.1/30 in unit 0 (ldp)
-
-R2:
-lo0.2 = 2.2.2.2/32 in unit 2 (ldp)
-ge-4/0/1.0 = address 192.168.2.2/30 in unit 0 (ldp)
-ge-4/0/6.0 = address 192.168.4.1/30 in unit 0 (ldp)
-
-R3:
-lo0.3 = 3.3.3.3/32 in unit 3 (ldp)
-ge-4/0/7.0 = address 192.168.4.2/30 in unit 0 (ldp)
-
-R4:
-lo0.4 = 4.4.4.4/32 in unit 4 (ldp)
-ge-4/3/0.0 = address 192.168.8.2/30 in unit 0 (ldp)
-ge-4/3/2.0 = address 192.168.7.2/30 in unit 0 (ldp)
-
-R5:
-lo0.5 = 5.5.5.5/32 in unit 5 (ldp)
-ge-4/3/1.0 = address 192.168.8.1/30 in unit 0 (ldp)
-ge-4/3/4.0 = address 192.168.10.2/30 in unit 0 (ldp)
-ge-4/3/6.0 = address 192.168.9.1/30 in unit 0 (ldp)
-
-R6:
-lo0.6 = 6.6.6.6/32 in unit 6 (ldp)
-ge-4/3/5.0 = address 192.168.10.1/30 in unit 0 (ldp)
-
-
-R7:
-lo0.7 = 7.7.7.7/32 in unit 7 (ldp)
-ge-4/3/7.0 = address 192.168.9.2/30 in unit 0 (ldp)
-ge-4/3/3.0 = address 192.168.7.1/30 in unit 0 (ldp)
+Router 1 >> Router 7 and Router 6
+Router 3 >> Router 4
 \end{verbatim}
 
-\textbf{The configuration:}
+This relationship is also depicted on the drawing at the beginning of this document. LDP distribution is configured between all the other interfaces of all the other routers, depicted by the following snippet from the configuration.
+
 
 \begin{verbatim}
 set logical-systems R1 protocols ldp interface ge-4/0/0.0
@@ -396,12 +268,6 @@ student@chico:R7> show ldp session
 
 \end{verbatim}
 
-\textbf{The links are the following:}
-
-\begin{verbatim}
-Router 1 >> Router 4 and Router 6
-Router 3 >> Router 4
-\end{verbatim}
 
 \textbf{The command used to configure LDP on interface is:}
 
@@ -543,7 +409,7 @@ mpls.0: 12 destinations, 12 routes (12 active, 0 holddown, 0 hidden)
 The router-IDs or Loopback interface addresses are used as FEC. They are a set of prefixes treated similarly. 
 
 
-\subsection{Question - Which LSPs are configured with RSVP? How are they configured? Determine as many details about the LSPs as you are able to find?}
+\subsection{Question 4 - Which LSPs are configured with RSVP? How are they configured? Determine as many details about the LSPs as you are able to find?}
 
 RSVP is enabled for all LSPs. RSVP  is enabled per interface but it is not specifically defined within the LSP.
 
@@ -679,14 +545,40 @@ x R8 must run LDP
 - An RSVP signalled LSP to R6 with reserved bandwidth of 200M should be built
 - Another RSVP LSP to R4 with reserved bandwidth of 300M should be built
 
+
+The configuration for R8 only:
+
+set logical-systems R8 interfaces ge-4/3/8 unit 0 family inet address 192.168.2.2/30
+set logical-systems R8 interfaces ge-4/3/8 unit 0 family iso
+set logical-systems R8 interfaces ge-4/3/8 unit 0 family mpls
+
+set logical-systems R8 interfaces ge-4/3/9 unit 0 family inet address 192.168.4.1/30
+set logical-systems R8 interfaces ge-4/3/9 unit 0 family iso
+set logical-systems R8 interfaces ge-4/3/9 unit 0 family mpls
+
+set logical-systems R8 interfaces lo0 unit 2 family inet address 8.8.8.8/32 primary
+set logical-systems R8 interfaces lo0 unit 2 family iso address 49.0001.0080.0800.8008.00
+
+set logical-systems R8 protocols rsvp interface all
+
+set logical-systems R8 protocols mpls icmp-tunneling
+set logical-systems R8 protocols mpls interface all
+
+set logical-systems R8 protocols isis overload timeout 100
+set logical-systems R8 protocols isis level 1 disable
+set logical-systems R8 protocols isis level 2 wide-metrics-only
+set logical-systems R8 protocols isis interface ge-4/3/8.0 point-to-point
+set logical-systems R8 protocols isis interface ge-4/3/9.0 point-to-point
+set logical-systems R8 protocols isis interface lo0.8 passive
+set logical-systems R8 protocols ldp interface all
+set logical-systems R8 routing-options router-id 8.8.8.8
+set logical-systems R8 protocols mpls label-switched-path toR4 to 3.3.3.3 bandwidth 300m
+set logical-systems R8 protocols mpls label-switched-path toR4 ldp-tunneling
+set logical-systems R8 protocols mpls label-switched-path toR6 to 3.3.3.3 bandwidth 200m
+set logical-systems R8 protocols mpls label-switched-path toR6 ldp-tunneling
 \end{verbatim}
 
+\textbf{You can find the explanation for each command used at Task 2 section 2.2}
 
-\begin{thebibliography}{9}
-\bibitem{nano3}
-  K. Grove-Rasmussen og Jesper Nygård,
-  \emph{Kvantefænomener i Nanosystemer}.
-  Niels Bohr Institute \& Nano-Science Center, Københavns Universitet
 
-\end{thebibliography}
 \end{document}
