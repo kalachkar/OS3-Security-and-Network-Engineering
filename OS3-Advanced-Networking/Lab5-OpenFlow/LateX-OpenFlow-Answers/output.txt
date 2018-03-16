@@ -1,0 +1,300 @@
+disabling L2
+
+root@reims:/home/fmakioui/floodlight-1.2# curl http://127.0.0.1:8080/wm/core/module/all/json | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 14232    0 14232    0     0   195k      0 --:--:-- --:--:-- --:--:--  198k
+{
+  "net.floodlightcontroller.core.internal.OFSwitchManager": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.debugevent.IDebugEventService": "net.floodlightcontroller.debugevent.DebugEventService",
+      "org.sdnplatform.sync.ISyncService": "org.sdnplatform.sync.internal.SyncManager",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    },
+    "provides": {
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager"
+    }
+  },
+  "net.floodlightcontroller.flowcache.FlowReconcileManager": {
+    "loaded": false,
+    "depends": {},
+    "provides": {
+      "net.floodlightcontroller.flowcache.IFlowReconcileService": "net.floodlightcontroller.flowcache.FlowReconcileManager"
+    }
+  },
+  "net.floodlightcontroller.threadpool.ThreadPool": {
+    "loaded": true,
+    "depends": {},
+    "provides": {
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    }
+  },
+  "net.floodlightcontroller.topology.TopologyManager": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.debugevent.IDebugEventService": "net.floodlightcontroller.debugevent.DebugEventService",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService": "net.floodlightcontroller.linkdiscovery.internal.LinkDiscoveryManager",
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "net.floodlightcontroller.topology.ITopologyService": "net.floodlightcontroller.topology.TopologyManager",
+      "net.floodlightcontroller.routing.IRoutingService": "net.floodlightcontroller.topology.TopologyManager"
+    }
+  },
+  "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.core.IShutdownService": "net.floodlightcontroller.core.internal.ShutdownServiceImpl"
+    },
+    "provides": {
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    }
+  },
+  "net.floodlightcontroller.debugevent.DebugEventService": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.core.IShutdownService": "net.floodlightcontroller.core.internal.ShutdownServiceImpl"
+    },
+    "provides": {
+      "net.floodlightcontroller.debugevent.IDebugEventService": "net.floodlightcontroller.debugevent.DebugEventService"
+    }
+  },
+  "net.floodlightcontroller.devicemanager.internal.DefaultEntityClassifier": {
+    "loaded": true,
+    "depends": {},
+    "provides": {
+      "net.floodlightcontroller.devicemanager.IEntityClassifierService": "net.floodlightcontroller.devicemanager.internal.DefaultEntityClassifier"
+    }
+  },
+  "net.floodlightcontroller.jython.JythonDebugInterface": {
+    "loaded": false,
+    "depends": {},
+    "provides": {}
+  },
+  "net.floodlightcontroller.core.internal.ShutdownServiceImpl": {
+    "loaded": true,
+    "depends": {},
+    "provides": {
+      "net.floodlightcontroller.core.IShutdownService": "net.floodlightcontroller.core.internal.ShutdownServiceImpl"
+    }
+  },
+  "net.floodlightcontroller.dhcpserver.DHCPServer": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller"
+    },
+    "provides": {}
+  },
+  "net.floodlightcontroller.learningswitch.LearningSwitch": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.learningswitch.ILearningSwitchService": "net.floodlightcontroller.learningswitch.LearningSwitch"
+    }
+  },
+  "net.floodlightcontroller.ui.web.StaticWebRoutable": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {}
+  },
+  "org.sdnplatform.sync.internal.SyncManager": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "org.sdnplatform.sync.ISyncService": "org.sdnplatform.sync.internal.SyncManager"
+    }
+  },
+  "net.floodlightcontroller.perfmon.PktInProcessingTime": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.perfmon.IPktInProcessingTimeService": "net.floodlightcontroller.perfmon.PktInProcessingTime"
+    }
+  },
+  "net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.staticflowentry.IStaticFlowEntryPusherService": "net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher"
+    }
+  },
+  "net.floodlightcontroller.storage.memory.MemoryStorageSource": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    },
+    "provides": {
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource"
+    }
+  },
+  "net.floodlightcontroller.virtualnetwork.VirtualNetworkFilter": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.devicemanager.IDeviceService": "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.virtualnetwork.IVirtualNetworkService": "net.floodlightcontroller.virtualnetwork.VirtualNetworkFilter"
+    }
+  },
+  "net.floodlightcontroller.firewall.Firewall": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.firewall.IFirewallService": "net.floodlightcontroller.firewall.Firewall"
+    }
+  },
+  "net.floodlightcontroller.linkdiscovery.internal.LinkDiscoveryManager": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.core.IShutdownService": "net.floodlightcontroller.core.internal.ShutdownServiceImpl",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService": "net.floodlightcontroller.linkdiscovery.internal.LinkDiscoveryManager"
+    }
+  },
+  "net.floodlightcontroller.hub.Hub": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller"
+    },
+    "provides": {}
+  },
+  "org.sdnplatform.sync.internal.SyncTorture": {
+    "loaded": false,
+    "depends": {
+      "org.sdnplatform.sync.ISyncService": "org.sdnplatform.sync.internal.SyncManager",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    },
+    "provides": {}
+  },
+  "net.floodlightcontroller.testmodule.TestModule": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.staticflowentry.IStaticFlowEntryPusherService": "net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher",
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager"
+    },
+    "provides": {}
+  },
+  "net.floodlightcontroller.core.internal.FloodlightProvider": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.debugevent.IDebugEventService": "net.floodlightcontroller.debugevent.DebugEventService",
+      "org.sdnplatform.sync.ISyncService": "org.sdnplatform.sync.internal.SyncManager",
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.perfmon.IPktInProcessingTimeService": "net.floodlightcontroller.perfmon.PktInProcessingTime",
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller"
+    }
+  },
+  "net.floodlightcontroller.restserver.RestApiServer": {
+    "loaded": true,
+    "depends": {},
+    "provides": {
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    }
+  },
+  "net.floodlightcontroller.accesscontrollist.ACL": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.devicemanager.IDeviceService": "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer"
+    },
+    "provides": {
+      "net.floodlightcontroller.accesscontrollist.IACLService": "net.floodlightcontroller.accesscontrollist.ACL"
+    }
+  },
+  "net.floodlightcontroller.forwarding.Forwarding": {
+    "loaded": false,
+    "depends": {
+      "net.floodlightcontroller.devicemanager.IDeviceService": "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl",
+      "net.floodlightcontroller.topology.ITopologyService": "net.floodlightcontroller.topology.TopologyManager",
+      "net.floodlightcontroller.routing.IRoutingService": "net.floodlightcontroller.topology.TopologyManager",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    },
+    "provides": {}
+  },
+  "net.floodlightcontroller.loadbalancer.LoadBalancer": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.devicemanager.IDeviceService": "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl",
+      "net.floodlightcontroller.topology.ITopologyService": "net.floodlightcontroller.topology.TopologyManager",
+      "net.floodlightcontroller.routing.IRoutingService": "net.floodlightcontroller.topology.TopologyManager",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.staticflowentry.IStaticFlowEntryPusherService": "net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher",
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.debugcounter.IDebugCounterService": "net.floodlightcontroller.debugcounter.DebugCounterServiceImpl"
+    },
+    "provides": {
+      "net.floodlightcontroller.loadbalancer.ILoadBalancerService": "net.floodlightcontroller.loadbalancer.LoadBalancer"
+    }
+  },
+  "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.topology.ITopologyService": "net.floodlightcontroller.topology.TopologyManager",
+      "org.sdnplatform.sync.ISyncService": "org.sdnplatform.sync.internal.SyncManager",
+      "net.floodlightcontroller.storage.IStorageSourceService": "net.floodlightcontroller.storage.memory.MemoryStorageSource",
+      "net.floodlightcontroller.devicemanager.IEntityClassifierService": "net.floodlightcontroller.devicemanager.internal.DefaultEntityClassifier",
+      "net.floodlightcontroller.core.IFloodlightProviderService": "net.floodlightcontroller.core.internal.Controller",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "net.floodlightcontroller.devicemanager.IDeviceService": "net.floodlightcontroller.devicemanager.internal.DeviceManagerImpl"
+    }
+  },
+  "net.floodlightcontroller.statistics.StatisticsCollector": {
+    "loaded": true,
+    "depends": {
+      "net.floodlightcontroller.core.internal.IOFSwitchService": "net.floodlightcontroller.core.internal.OFSwitchManager",
+      "net.floodlightcontroller.restserver.IRestApiService": "net.floodlightcontroller.restserver.RestApiServer",
+      "net.floodlightcontroller.threadpool.IThreadPoolService": "net.floodlightcontroller.threadpool.ThreadPool"
+    },
+    "provides": {
+      "net.floodlightcontroller.statistics.IStatisticsService": "net.floodlightcontroller.statistics.StatisticsCollector"
+    }
+  }
+}
+root@reims:/home/fmakioui/floodlight-1.2#
