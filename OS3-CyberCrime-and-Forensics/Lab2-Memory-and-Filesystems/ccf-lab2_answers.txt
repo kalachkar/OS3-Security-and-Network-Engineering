@@ -133,7 +133,11 @@ KPCR                          : 0xffdff000 (CPU 0)
 </code>
 
 OSs are Windows XP Service Pack 2 x86 and Windows XP Service Pack 3 x86.
- 
+
+<WRAP center round alert 60%>** You need to be exact as Volatility takes a profile as input. Or show that both SP2 and SP3 profiles give the same result.** </WRAP>
+
+Since two different versions are exists. I will use the kdbgscan for vol.py I was able to identify the build number of Windows which is __130704-0421__. This means that the build number of SP3 of Windows XP 32-bit according to https://www.lifewire.com/windows-version-numbers-2625171. 
+
 
 <WRAP center round tip 60%>4. Find out if there is any malware running on the computer</WRAP>
 
@@ -3317,6 +3321,17 @@ root@caine:/local$ vol.py --profile=WinXPSP3x86 -f memory.raw filescan
 
 root@caine:/local$ vol.py --profile=WinXPSP3x86 -f memory.raw dumpfiles -n -i -r \\.txt --dump-dir malwareResults/
 </code>
+
+<WRAP center round Alert 60%>**Please answer second part too.** </WRAP>
+
+The following files possibly contain artifacts:
+  * pdf
+  * jpg
+  * png
+  * flv
+  * doc
+  * txt
+  * conf
 
 
 <WRAP center round tip 60%>8. Write a small paragraph of maximum 200 words about your findings. Please remain objective.</WRAP>
